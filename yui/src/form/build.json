@@ -1,0 +1,10 @@
+{
+  "name": "moodle-availability_playerhud-form",
+  "builds": {
+    "moodle-availability_playerhud-form": {
+      "jsfiles": [
+        "form.js"
+      ]
+    }
+  }
+}
