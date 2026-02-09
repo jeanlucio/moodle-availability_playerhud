@@ -13,3 +13,4 @@ $string['missing'] = '(Missing data)';
 $string['requires_level'] = 'You must reach <strong>Level {$a}</strong>.';
 $string['requires_item'] = 'You must have <strong>{$a->qty}x {$a->item}</strong>.';
 $string['error_block_missing'] = 'PlayerHUD block not found in this course.';
+$string['empty'] = 'No items found';

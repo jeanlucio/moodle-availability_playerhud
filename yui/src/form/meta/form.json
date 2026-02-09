@@ -1,0 +1,11 @@
+{
+    "moodle-availability_playerhud-form": {
+        "requires": [
+            "base",
+            "node",
+            "event",
+            "moodle-core_availability-form",
+            "escape"
+        ]
+    }
+}

@@ -4,138 +4,156 @@
  * @module moodle-availability_playerhud-form
  */
 YUI.add('moodle-availability_playerhud-form', function(Y) {
-
-    // Define a classe do formulário.
-    // O Moodle exige este namespace exato, então desativamos o aviso de camelcase.
+    // Namespace obrigatório (com disable do camelcase do Eslint).
     /* eslint-disable camelcase */
     M.availability_playerhud = M.availability_playerhud || {};
     /* eslint-enable camelcase */
 
-    M.availability_playerhud.form = Y.Base.create('moodle-availability_playerhud-form', Y.Plugin.Base, [], {
+    /**
+     * Define a lógica do formulário estendendo o plugin base do core.
+     */
+    M.availability_playerhud.form = Y.Object(M.core_availability.plugin);
 
-        /**
-         * Inicializa o formulário.
-         *
-         * @method initializer
-         * @param {Object} params
-         */
-        initializer: function(params) {
-            this.items = params.items; // Recebe a lista de itens do PHP.
-        },
+    /**
+     * Inicializa os dados (chamado pelo Moodle automaticamente).
+     *
+     * @method initInner
+     * @param {Array} items Dados passados do PHP.
+     */
+    M.availability_playerhud.form.initInner = function(items) {
+        this.items = items || [];
+    };
 
-        /**
-         * Cria os nós HTML (Inputs, Selects).
-         *
-         * @method getNode
-         * @param {Object} json
-         * @return {Y.Node}
-         */
-        getNode: function(json) {
-            // 1. Selector de TIPO (Nível ou Item).
-            var html = '<label class="me-2">Tipo: <select name="subtype" class="form-select d-inline-block w-auto me-3">' +
-                       '<option value="level">Nível</option>' +
-                       '<option value="item">Item</option>' +
-                       '</select></label>';
+    /**
+     * Gera o nó HTML para o formulário.
+     *
+     * @method getNode
+     * @param {Object} json Dados salvos anteriormente.
+     * @return {Y.Node} O nó YUI.
+     */
+    M.availability_playerhud.form.getNode = function(json) {
+        // HTML Template com melhor legibilidade e concatenação.
+        var html = '<div class="d-inline-block border p-2 rounded bg-light">' +
+                   '<label class="me-2 fw-bold">Tipo: ' +
+                   '<select name="subtype" class="form-select d-inline-block w-auto me-3">' +
+                   '<option value="level">Nível (Level)</option>' +
+                   '<option value="item">Item</option>' +
+                   '</select></label>';
 
-            // 2. Opções de NÍVEL.
-            html += '<span class="ph-option-level">' +
-                    '<label>Nível Mínimo: <input type="number" name="levelval" ' +
-                    'class="form-control d-inline-block w-auto" style="width:80px;" min="1" value="1"></label>' +
-                    '</span>';
+        html += '<span class="ph-option-level">' +
+                '<label>Nível Mínimo: <input type="number" name="levelval" ' +
+                'class="form-control d-inline-block w-auto" style="width:80px;" min="1" value="1"></label>' +
+                '</span>';
 
-            // 3. Opções de ITEM.
-            html += '<span class="ph-option-item" style="display:none;">' +
-                    '<label class="me-2">Item: <select name="itemid" class="form-select d-inline-block w-auto me-2">';
+        html += '<span class="ph-option-item hidden" style="display:none;">' +
+                '<label class="me-2">Item: ' +
+                '<select name="itemid" class="form-select d-inline-block w-auto me-2" style="max-width:200px;">';
 
-            // Popula itens.
-            if (this.items && this.items.length > 0) {
-                for (var i = 0; i < this.items.length; i++) {
-                    html += '<option value="' + this.items[i].id + '">' + Y.Escape.html(this.items[i].name) + '</option>';
-                }
-            } else {
-                html += '<option value="0">Nenhum item encontrado no curso</option>';
+        // Popula itens com escape de segurança.
+        if (this.items && this.items.length > 0) {
+            for (var i = 0; i < this.items.length; i++) {
+                var itemName = Y.Escape.html(this.items[i].name);
+                html += '<option value="' + this.items[i].id + '">' + itemName + '</option>';
             }
-
-            html += '</select></label>';
-            html += '<label>Qtd: <input type="number" name="itemqty" class="form-control d-inline-block w-auto" ' +
-                    'style="width:70px;" min="1" value="1"></label>' +
-                    '</span>';
-
-            var node = Y.Node.create('<span>' + html + '</span>');
-
-            // Event Listener para trocar visualização.
-            var subtype = node.one('select[name=subtype]');
-            subtype.on('change', function() {
-                if (subtype.get('value') === 'level') {
-                    node.one('.ph-option-level').show();
-                    node.one('.ph-option-item').hide();
-                } else {
-                    node.one('.ph-option-level').hide();
-                    node.one('.ph-option-item').show();
-                }
-            });
-
-            // Preenche valores se estiver editando.
-            if (json.subtype) {
-                subtype.set('value', json.subtype);
-                if (json.subtype === 'item') {
-                    node.one('.ph-option-level').hide();
-                    node.one('.ph-option-item').show();
-                    if (json.itemid) {
-                        node.one('select[name=itemid]').set('value', json.itemid);
-                    }
-                    if (json.itemqty) {
-                        node.one('input[name=itemqty]').set('value', json.itemqty);
-                    }
-                } else {
-                    if (json.levelval) {
-                        node.one('input[name=levelval]').set('value', json.levelval);
-                    }
-                }
-            }
-
-            // Moodle requer handlers para atualização dinâmica.
-            if (!M.availability_playerhud.form.addedEvents) {
-                M.availability_playerhud.form.addedEvents = true;
-                var root = Y.one('#fitem_id_availabilityconditionsjson');
-                root.delegate('change', function() {
-                    M.core_availability.form.update();
-                }, '.availability_playerhud select');
-                root.delegate('change', function() {
-                    M.core_availability.form.update();
-                }, '.availability_playerhud input');
-            }
-
-            return node;
-        },
-
-        /**
-         * Prepara os dados do formulário para salvar no JSON.
-         *
-         * @method fillValue
-         * @param {Object} value
-         * @param {Y.Node} node
-         */
-        fillValue: function(value, node) {
-            var subtype = node.one('select[name=subtype]').get('value');
-            value.subtype = subtype;
-
-            if (subtype === 'level') {
-                value.levelval = parseInt(node.one('input[name=levelval]').get('value'), 10);
-            } else {
-                value.itemid = parseInt(node.one('select[name=itemid]').get('value'), 10);
-                value.itemqty = parseInt(node.one('input[name=itemqty]').get('value'), 10);
-            }
+        } else {
+            // Usa a string 'empty' que adicionamos aos arquivos de idioma.
+            html += '<option value="0">(' + M.util.get_string('empty', 'availability_playerhud') + ')</option>';
         }
-    }, {
-        NAME: 'availability_playerhud-form',
-        ATTRS: {
-            connection: {
-                getter: function() {
-                    return this;
+
+        html += '</select></label>';
+        html += '<label>Qtd: <input type="number" name="itemqty" class="form-control d-inline-block w-auto" ' +
+                'style="width:70px;" min="1" value="1"></label>' +
+                '</span></div>';
+
+        var node = Y.Node.create(html);
+
+        // Lógica de troca de visibilidade.
+        var subtype = node.one('select[name=subtype]');
+
+        var updateVisibility = function() {
+            var val = subtype.get('value');
+            if (val === 'level') {
+                node.one('.ph-option-level').setStyle('display', 'inline');
+                node.one('.ph-option-item').setStyle('display', 'none');
+            } else {
+                node.one('.ph-option-level').setStyle('display', 'none');
+                node.one('.ph-option-item').setStyle('display', 'inline');
+            }
+        };
+
+        subtype.on('change', function() {
+            updateVisibility();
+            M.core_availability.form.update();
+        });
+
+        // Preencher valores (Edição).
+        if (json.subtype) {
+            subtype.set('value', json.subtype);
+            if (json.subtype === 'item') {
+                if (json.itemid) {
+                    node.one('select[name=itemid]').set('value', json.itemid);
+                }
+                if (json.itemqty) {
+                    node.one('input[name=itemqty]').set('value', json.itemqty);
+                }
+            } else {
+                if (json.levelval) {
+                    node.one('input[name=levelval]').set('value', json.levelval);
                 }
             }
         }
-    });
 
-}, '@VERSION@', {requires: ['base', 'node', 'event', 'io', 'moodle-core_availability-form']});
+        // Executar inicialização visual.
+        updateVisibility();
+
+        // Listeners para atualização da árvore.
+        node.all('input, select').on('change', function() {
+            M.core_availability.form.update();
+        });
+
+        return node;
+    };
+
+    /**
+     * Preenche o objeto de valor para ser salvo.
+     *
+     * @method fillValue
+     * @param {Object} value O objeto JSON.
+     * @param {Y.Node} node O nó HTML.
+     */
+    M.availability_playerhud.form.fillValue = function(value, node) {
+        var subtype = node.one('select[name=subtype]').get('value');
+        value.subtype = subtype;
+
+        if (subtype === 'level') {
+            var lvl = parseInt(node.one('input[name=levelval]').get('value'), 10);
+            value.levelval = isNaN(lvl) ? 1 : lvl;
+        } else {
+            var itemid = parseInt(node.one('select[name=itemid]').get('value'), 10);
+            var qty = parseInt(node.one('input[name=itemqty]').get('value'), 10);
+            value.itemid = isNaN(itemid) ? 0 : itemid;
+            value.itemqty = isNaN(qty) ? 1 : qty;
+        }
+    };
+
+    /**
+     * Validação de erros antes de salvar.
+     *
+     * @method fillErrors
+     * @param {Array} errors Lista de erros.
+     * @param {Y.Node} node O nó HTML.
+     */
+    M.availability_playerhud.form.fillErrors = function(errors, node) {
+        var subtype = node.one('select[name=subtype]').get('value');
+        if (subtype === 'item') {
+            var itemid = parseInt(node.one('select[name=itemid]').get('value'), 10);
+            if (itemid <= 0) {
+                // Erro se tentar salvar restrição de item sem ter itens criados.
+                errors.push('availability_playerhud:error_item_required');
+            }
+        }
+    };
+
+}, '@VERSION@', {
+    requires: ['base', 'node', 'event', 'moodle-core_availability-form', 'escape']
+});
