@@ -1,100 +1,91 @@
-Moodle PlayerHUD Availability Condition
-[English] | Português
+# Moodle PlayerHUD Availability Condition
 
-This plugin allows teachers to restrict access to activities, resources, or sections based on the student's progress in the PlayerHUD Block. It introduces gamification mechanics by unlocking content only when students reach a certain Level or collect specific Items.
+![Moodle](https://img.shields.io/badge/Moodle-4.1%2B-orange?style=flat-square&logo=moodle&logoColor=white)
+![License](https://img.shields.io/badge/License-GPLv3-blue?style=flat-square)
+![Status](https://img.shields.io/badge/Status-Stable-green?style=flat-square)
 
-🚀 Features
-Restrict by Level: Unlock content only when a student reaches a specific level (e.g., "Level 5 or higher").
+[🇬🇧 English](#gb-english) | [🇧🇷 Português](#br-português)
 
-Restrict by Item: Unlock content based on items in the student's inventory.
+---
 
-Advanced Logic: Use operators to create complex conditions:
+## 🇬🇧 English
 
-More than (>)
+The **PlayerHUD Availability Condition** is a plugin for Moodle that allows teachers to restrict access to activities, resources, or sections based on the student's progress in the **PlayerHUD Block**. It introduces gamification mechanics by unlocking content only when students reach a certain **Level** or collect specific **Items**.
 
-Less than (<)
+### ✨ Features
 
-Exactly (=)
+* **Restrict by Level:** Unlock content only when a student reaches a specific level (e.g., "Level 5 or higher").
+* **Restrict by Item:** Unlock content based on items in the student's inventory.
+* **Advanced Logic:** Use operators to create complex conditions:
+    * *More than (>)*
+    * *Less than (<)*
+    * *Exactly (=)*
+    * *Greater or equal (>=)* (Default)
 
-Greater or equal (>=) (Default)
+### 📦 Requirements
 
-📦 Requirements
-Moodle: 4.1 or higher.
+* **Moodle:** 4.1 or higher.
+* **Dependency:** [Block PlayerHUD](https://github.com/jeanlucio/moodle-block_playerhud) (must be installed and enabled in the course).
 
-Dependency: Block PlayerHUD (must be installed and enabled in the course).
+### 🛠️ Installation
 
-🛠️ Installation
-Download the .zip file or clone this repository.
+1.  Download the `.zip` file or clone this repository.
+2.  Extract the content into your Moodle's `availability/condition/` directory.
+3.  Rename the folder to `playerhud` (if it isn't already).
+    * Path should be: `your-moodle/availability/condition/playerhud/`
+4.  Go to **Site administration > Notifications** to complete the installation.
 
-Extract the content into your Moodle's availability/condition/ directory.
+### 📖 Usage
 
-Rename the folder to playerhud.
+1.  In a course, turn **Edit mode on**.
+2.  Edit an activity or resource and go to the **Restrict access** section.
+3.  Click **Add restriction...** and select **PlayerHUD**.
+4.  Choose the restriction type:
+    * **Minimum Level:** Set the required level number.
+    * **Own Item:** Select an item from the dropdown, choose an operator (e.g., "more than"), and set the quantity.
 
-Path should be: your-moodle/availability/condition/playerhud/
+---
 
-Go to Site administration > Notifications to complete the installation.
+## 🇧🇷 Português
 
-📖 Usage
-In a course, turn Edit mode on.
+A **Restrição de Acesso por PlayerHUD** é um plugin para Moodle que permite aos professores restringir o acesso a atividades, recursos ou tópicos com base no progresso do aluno no **Bloco PlayerHUD**. Ele introduz mecânicas de gamificação ao liberar conteúdo apenas quando os alunos atingem um determinado **Nível** ou coletam **Itens** específicos.
 
-Edit an activity or resource and go to the Restrict access section.
+### ✨ Funcionalidades
 
-Click Add restriction... and select PlayerHUD.
+* **Restrição por Nível:** Libere conteúdo apenas quando o aluno atingir um nível específico (ex: "Nível 5 ou superior").
+* **Restrição por Item:** Libere conteúdo com base nos itens do inventário do aluno.
+* **Lógica Avançada:** Use operadores para criar condições complexas:
+    * *Mais que (>)*
+    * *Menos que (<)*
+    * *Exatamente (=)*
+    * *Maior ou igual (>=)* (Padrão)
 
-Choose the restriction type:
+### 📦 Requisitos
 
-Minimum Level: Set the required level number.
+* **Moodle:** 4.1 ou superior.
+* **Dependência:** [Block PlayerHUD](https://github.com/jeanlucio/moodle-block_playerhud) (deve estar instalado e adicionado ao curso).
 
-Own Item: Select an item from the dropdown, choose an operator (e.g., "more than"), and set the quantity.
+### 🛠️ Instalação
 
-Restrição de Acesso por PlayerHUD (Português)
-Este plugin permite que professores restrinjam o acesso a atividades, recursos ou tópicos com base no progresso do aluno no Bloco PlayerHUD. Ele introduz mecânicas de gamificação ao liberar conteúdo apenas quando os alunos atingem um determinado Nível ou coletam Itens específicos.
+1.  Baixe o arquivo `.zip` ou clone este repositório.
+2.  Extraia o conteúdo no diretório `availability/condition/` do seu Moodle.
+3.  Renomeie a pasta para `playerhud` (se ainda não estiver).
+    * O caminho deve ficar: `seu-moodle/availability/condition/playerhud/`
+4.  Acesse **Administração do site > Notificações** para concluir a instalação.
 
-🚀 Funcionalidades
-Restrição por Nível: Libere conteúdo apenas quando o aluno atingir um nível específico (ex: "Nível 5 ou superior").
+### 📖 Como Usar
 
-Restrição por Item: Libere conteúdo com base nos itens do inventário do aluno.
+1.  No curso, ative o **Modo de edição**.
+2.  Edite uma atividade ou recurso e vá até a seção **Restringir acesso**.
+3.  Clique em **Adicionar restrição...** e selecione **PlayerHUD**.
+4.  Escolha o tipo de restrição:
+    * **Nível Mínimo:** Defina o número do nível necessário.
+    * **Possuir Item:** Selecione um item da lista, escolha um operador (ex: "mais que") e defina a quantidade.
 
-Lógica Avançada: Use operadores para criar condições complexas:
+---
 
-Mais que (>)
+## 📄 License / Licença
 
-Menos que (<)
+This project is licensed under the **GNU General Public License v3 (GPLv3)**.
 
-Exatamente (=)
-
-Maior ou igual (>=) (Padrão)
-
-📦 Requisitos
-Moodle: 4.1 ou superior.
-
-Dependência: Block PlayerHUD (deve estar instalado e adicionado ao curso).
-
-🛠️ Instalação
-Baixe o arquivo .zip ou clone este repositório.
-
-Extraia o conteúdo no diretório availability/condition/ do seu Moodle.
-
-Renomeie a pasta para playerhud.
-
-O caminho deve ficar: seu-moodle/availability/condition/playerhud/
-
-Acesse Administração do site > Notificações para concluir a instalação.
-
-📖 Como Usar
-No curso, ative o Modo de edição.
-
-Edite uma atividade ou recurso e vá até a seção Restringir acesso.
-
-Clique em Adicionar restrição... e selecione PlayerHUD.
-
-Escolha o tipo de restrição:
-
-Nível Mínimo: Defina o número do nível necessário.
-
-Possuir Item: Selecione um item da lista, escolha um operador (ex: "mais que") e defina a quantidade.
-
-📄 License / Licença
-This project is licensed under the GNU General Public License v3 (GPLv3).
-
-Copyright: 2026 Jean Lúcio
+**Copyright:** 2026 Jean Lúcio
