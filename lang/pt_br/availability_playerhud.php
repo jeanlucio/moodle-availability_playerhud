@@ -14,3 +14,4 @@ $string['requires_level'] = 'Você precisa alcançar o <strong>Nível {$a}</stro
 $string['requires_item'] = 'Você precisa ter <strong>{$a->qty}x {$a->item}</strong>.';
 $string['error_block_missing'] = 'Bloco PlayerHUD não encontrado neste curso.';
 $string['empty'] = 'Nenhum item encontrado';
+$string['label_type'] = 'Tipo:';

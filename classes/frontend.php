@@ -74,6 +74,14 @@ class frontend extends \core_availability\frontend {
      * @return array List of string identifiers
      */
     protected function get_javascript_strings() {
-        return ['empty', 'option_level', 'option_item'];
+        return [
+            'empty', 
+            'option_level', 
+            'option_item',
+            'label_type', 
+            'label_min_level', 
+            'label_item_select', 
+            'label_item_qty'
+        ];
     }
 }

@@ -1,0 +1,10 @@
+/* Width helpers for the availability form inputs */
+.availability_playerhud .ph-input-short {
+    width: 80px;
+    display: inline-block;
+}
+
+.availability_playerhud .ph-select-medium {
+    max-width: 200px;
+    display: inline-block;
+}
