@@ -1,159 +1,215 @@
 YUI.add('moodle-availability_playerhud-form', function (Y, NAME) {
 
-YUI.add('moodle-availability_playerhud-form', function(Y) {
-    // Namespace obrigatório
-    /* eslint-disable camelcase */
-    M.availability_playerhud = M.availability_playerhud || {};
-    /* eslint-enable camelcase */
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-    /**
-     * @class M.availability_playerhud.form
-     * @extends M.core_availability.plugin
-     */
-    M.availability_playerhud.form = Y.Object(M.core_availability.plugin);
+/**
+ * PlayerHUD Availability Form.
+ *
+ * @package    availability_playerhud
+ * @copyright  2026 Jean Lúcio
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
-    /**
-     * Itens disponíveis (carregados via PHP initInner).
-     */
-    M.availability_playerhud.form.items = null;
+/* eslint-disable camelcase */
 
-    /**
-     * Inicializa os dados (chamado pelo Moodle automaticamente).
-     *
-     * @method initInner
-     * @param {Array} items Lista de itens vindos do PHP.
-     */
-    M.availability_playerhud.form.initInner = function(items) {
-        this.items = items || [];
+/**
+ * PlayerHUD Availability Form.
+ *
+ * @module moodle-availability_playerhud-form
+ */
+M.availability_playerhud = M.availability_playerhud || {};
+
+/**
+ * @class M.availability_playerhud.form
+ * @extends M.core_availability.plugin
+ */
+M.availability_playerhud.form = Y.Object(M.core_availability.plugin);
+
+/**
+ * Initialized items from PHP.
+ * @property items
+ * @type Array
+ */
+M.availability_playerhud.form.items = null;
+
+/**
+ * Initialises this plugin.
+ *
+ * @method initInner
+ * @param {Array} items List of items available in PlayerHUD block.
+ */
+M.availability_playerhud.form.initInner = function(items) {
+    this.items = items || [];
+};
+
+/**
+ * Creates the HTML node for the form.
+ *
+ * @method getNode
+ * @param {Object} json The existing data for this restriction.
+ * @return {Y.Node} The YUI node.
+ */
+M.availability_playerhud.form.getNode = function(json) {
+    // Rule 4: No hardcoded strings. Fetching from language pack.
+    var s = {
+        level: M.util.get_string('option_level', 'availability_playerhud'),
+        item: M.util.get_string('option_item', 'availability_playerhud'),
+        min_level: M.util.get_string('label_min_level', 'availability_playerhud'),
+        qty: M.util.get_string('label_item_qty', 'availability_playerhud'),
+        type: M.util.get_string('label_type', 'availability_playerhud'),
+        empty: M.util.get_string('empty', 'availability_playerhud'),
+        more: M.util.get_string('op_more', 'availability_playerhud'),
+        less: M.util.get_string('op_less', 'availability_playerhud'),
+        equal: M.util.get_string('op_equal', 'availability_playerhud')
     };
 
-    /**
-     * Gera o nó HTML para o formulário.
-     *
-     * @method getNode
-     * @param {Object} json Dados salvos anteriormente.
-     * @return {Y.Node} O nó YUI.
-     */
-    M.availability_playerhud.form.getNode = function(json) {
-        // Strings de idioma (Garantir que existem no PHP)
-        var strLevel = M.util.get_string('option_level', 'availability_playerhud');
-        var strItem = M.util.get_string('option_item', 'availability_playerhud');
-        var strMin = M.util.get_string('label_min_level', 'availability_playerhud');
-        var strQty = M.util.get_string('label_item_qty', 'availability_playerhud');
-        var strType = M.util.get_string('label_type', 'availability_playerhud');
+    // Rule 1 & 14: Bootstrap 5 classes (gap-2 handles the vertical/horizontal spacing).
+    var html = '<span class="ph-controls d-inline-flex flex-wrap align-items-center gap-2">';
 
-        // Estrutura HTML com Bootstrap 5 e classes do Moodle
-        var html = '<div class="d-inline-flex align-items-center flex-wrap gap-2 border p-2 rounded bg-light">' +
-                   '<label class="mb-0 fw-bold">' + strType + ' ' +
-                   '<select name="subtype" class="form-select form-select-sm d-inline-block w-auto ms-1">' +
-                   '<option value="level">' + strLevel + '</option>' +
-                   '<option value="item">' + strItem + '</option>' +
-                   '</select></label>';
+    // Type Selection
+    // Rule 8: Implicit label wrapping.
+    html += '<label class="mb-0">' + s.type + ' ';
+    html += '<select name="subtype" class="form-select form-select-sm d-inline-block w-auto ms-1">';
+    html += '<option value="level">' + s.level + '</option>';
+    html += '<option value="item">' + s.item + '</option>';
+    html += '</select></label>';
 
-        // Opção Nível
-        html += '<span class="ph-option-level ms-2">' +
-                '<label class="mb-0">' + strMin + ' ' +
-                // eslint-disable-next-line max-len
-                '<input type="number" name="levelval" class="form-control form-select-sm d-inline-block w-auto" style="width: 70px;" min="1" value="1">' +
-                '</label></span>';
+    // --- Option: Level ---
+    html += '<span class="ph-option-level">';
+    html += '<label class="mb-0">' + s.min_level + ' ';
+    // Rule 11: Class .ph-input-qty used for width.
+    html += '<input type="number" name="levelval" class="form-control form-select-sm d-inline-block ph-input-qty ms-1" ';
+    html += 'min="1" value="1">';
+    html += '</label></span>';
 
-        // Opção Item
-        html += '<span class="ph-option-item ms-2" style="display:none;">' +
-                '<label class="mb-0 me-2">' +
-                '<select name="itemid" class="form-select form-select-sm d-inline-block w-auto" style="max-width: 200px;">';
+    // --- Option: Item ---
+    html += '<span class="ph-option-item">';
 
-        if (this.items && this.items.length > 0) {
-            for (var i = 0; i < this.items.length; i++) {
-                html += '<option value="' + this.items[i].id + '">' + Y.Escape.html(this.items[i].name) + '</option>';
-            }
+    // Item Selection
+    html += '<label class="mb-0">';
+    // Rule 11: Class .ph-select-item used for max-width.
+    html += '<select name="itemid" class="form-select form-select-sm d-inline-block ph-select-item">';
+
+    if (this.items && this.items.length > 0) {
+        for (var i = 0; i < this.items.length; i++) {
+            html += '<option value="' + this.items[i].id + '">' + Y.Escape.html(this.items[i].name) + '</option>';
+        }
+    } else {
+        html += '<option value="0">' + s.empty + '</option>';
+    }
+    html += '</select></label>';
+
+    // Operator Selection
+    html += '<label class="mb-0">';
+    html += '<span class="visually-hidden">' + s.type + '</span>'; // Rule 6/8: Accessibility
+    html += '<select name="itemop" class="form-select form-select-sm d-inline-block w-auto">';
+    html += '<option value=">">' + s.more + '</option>';
+    html += '<option value="<">' + s.less + '</option>';
+    html += '<option value="=">' + s.equal + '</option>';
+    html += '</select></label>';
+
+    // Quantity Input
+    html += '<label class="mb-0">';
+    html += '<span class="visually-hidden">' + s.qty + '</span>'; // Rule 8: Accessibility
+    html += '<input type="number" name="itemqty" class="form-control form-select-sm d-inline-block ph-input-qty" ';
+    html += 'min="1" value="1">';
+    html += '</label></span>';
+
+    html += '</span>'; // End container
+
+    var node = Y.Node.create(html);
+
+    // Visibility Logic
+    var subtype = node.one('select[name=subtype]');
+    var updateVisibility = function() {
+        var val = subtype.get('value');
+        if (val === 'level') {
+            node.one('.ph-option-level').setStyle('display', 'contents'); // 'contents' works better with flex gap
+            node.one('.ph-option-item').setStyle('display', 'none');
         } else {
-            html += '<option value="0">' + M.util.get_string('empty', 'availability_playerhud') + '</option>';
+            node.one('.ph-option-level').setStyle('display', 'none');
+            node.one('.ph-option-item').setStyle('display', 'contents');
         }
+    };
 
-        html += '</select></label>';
-        html += '<label class="mb-0">' + strQty + ' ' +
-                // eslint-disable-next-line max-len
-                '<input type="number" name="itemqty" class="form-control form-select-sm d-inline-block w-auto" style="width: 70px;" min="1" value="1">' +
-                '</label></span></div>';
-
-        var node = Y.Node.create(html);
-
-        // Lógica de Visibilidade
-        var subtype = node.one('select[name=subtype]');
-        var updateVisibility = function() {
-            var val = subtype.get('value');
-            if (val === 'level') {
-                node.one('.ph-option-level').setStyle('display', 'inline');
-                node.one('.ph-option-item').setStyle('display', 'none');
-            } else {
-                node.one('.ph-option-level').setStyle('display', 'none');
-                node.one('.ph-option-item').setStyle('display', 'inline');
-            }
-        };
-
-        subtype.on('change', function() {
-            updateVisibility();
-            M.core_availability.form.update();
-        });
-
-        // Preenchimento de valores (Edição)
-        if (json.subtype) {
-            subtype.set('value', json.subtype);
-            if (json.subtype === 'item') {
-                if (json.itemid) {
-                    node.one('select[name=itemid]').set('value', json.itemid);
-                }
-                if (json.itemqty) {
-                    node.one('input[name=itemqty]').set('value', json.itemqty);
-                }
-            } else {
-                if (json.levelval) {
-                    node.one('input[name=levelval]').set('value', json.levelval);
-                }
-            }
-        }
-
+    subtype.on('change', function() {
         updateVisibility();
+        M.core_availability.form.update();
+    });
 
-        // Listeners
-        node.all('input, select').on('change', function() {
-            M.core_availability.form.update();
-        });
-
-        return node;
-    };
-
-    /**
-     * Prepara valor para salvar.
-     */
-    M.availability_playerhud.form.fillValue = function(value, node) {
-        var subtype = node.one('select[name=subtype]').get('value');
-        value.subtype = subtype;
-
-        if (subtype === 'level') {
-            value.levelval = parseInt(node.one('input[name=levelval]').get('value'), 10) || 1;
+    // Fill values if editing existing restriction
+    if (json.subtype) {
+        subtype.set('value', json.subtype);
+        if (json.subtype === 'item') {
+            if (json.itemid) {
+                node.one('select[name=itemid]').set('value', json.itemid);
+            }
+            if (json.itemqty) {
+                node.one('input[name=itemqty]').set('value', json.itemqty);
+            }
+            if (json.itemop) {
+                node.one('select[name=itemop]').set('value', json.itemop);
+            }
         } else {
-            value.itemid = parseInt(node.one('select[name=itemid]').get('value'), 10) || 0;
-            value.itemqty = parseInt(node.one('input[name=itemqty]').get('value'), 10) || 1;
-        }
-    };
-
-    /**
-     * Validação de Erros.
-     */
-    M.availability_playerhud.form.fillErrors = function(errors, node) {
-        var subtype = node.one('select[name=subtype]').get('value');
-        if (subtype === 'item') {
-            var itemid = parseInt(node.one('select[name=itemid]').get('value'), 10);
-            if (!itemid || itemid <= 0) {
-                // Errors.push('availability_playerhud:error_item_required'); // Opcional
+            if (json.levelval) {
+                node.one('input[name=levelval]').set('value', json.levelval);
             }
         }
-    };
+    }
 
-}, '@VERSION@', {
-    requires: ['base', 'node', 'event', 'moodle-core_availability-form', 'escape']
-});
+    updateVisibility();
+
+    // Event Listeners for auto-update
+    node.all('input, select').on('change', function() {
+        M.core_availability.form.update();
+    });
+
+    return node;
+};
+
+/**
+ * Fills the value object with data from the form.
+ *
+ * @method fillValue
+ * @param {Object} value The object to populate.
+ * @param {Y.Node} node The form node.
+ */
+M.availability_playerhud.form.fillValue = function(value, node) {
+    var subtype = node.one('select[name=subtype]').get('value');
+    value.subtype = subtype;
+
+    if (subtype === 'level') {
+        value.levelval = parseInt(node.one('input[name=levelval]').get('value'), 10) || 1;
+    } else {
+        value.itemid = parseInt(node.one('select[name=itemid]').get('value'), 10) || 0;
+        value.itemqty = parseInt(node.one('input[name=itemqty]').get('value'), 10) || 1;
+        value.itemop = node.one('select[name=itemop]').get('value');
+    }
+};
+
+/**
+ * Handles form validation errors.
+ *
+ * @method fillErrors
+ * @param {Array} errors Array to push errors to.
+ * @param {Y.Node} node The form node.
+ */
+M.availability_playerhud.form.fillErrors = function(errors, node) {
+    // Optional validation logic
+};
 
 
 }, '@VERSION@', {"requires": ["base", "node", "event", "moodle-core_availability-form", "escape"]});

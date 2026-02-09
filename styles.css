@@ -8,3 +8,19 @@
     max-width: 200px;
     display: inline-block;
 }
+/* Rule 16: Strict Namespace */
+.availability_playerhud .ph-input-qty {
+    width: 60px; /* Rule 11: Zero Inline CSS */
+}
+
+.availability_playerhud .ph-select-item {
+    max-width: 200px;
+}
+
+/* Rule 14: RTL Compatibility - Ensuring spacing works in both directions */
+.availability_playerhud .ph-controls {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem; /* Bootstrap 5 gap utility equivalent */
+}
