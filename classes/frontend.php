@@ -102,6 +102,7 @@ class frontend extends \core_availability\frontend {
             'label_min_level',
             'label_item_select',
             'label_item_qty',
+            'op_atleast',
             'op_more',
             'op_less',
             'op_equal',

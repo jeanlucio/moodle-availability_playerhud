@@ -1,14 +1,14 @@
 # Moodle PlayerHUD Availability Condition
 
-![Moodle](https://img.shields.io/badge/Moodle-4.1%2B-orange?style=flat-square&logo=moodle&logoColor=white)
+![Moodle](https://img.shields.io/badge/Moodle-4.5%2B-orange?style=flat-square&logo=moodle&logoColor=white)
 ![License](https://img.shields.io/badge/License-GPLv3-blue?style=flat-square)
 ![Status](https://img.shields.io/badge/Status-Stable-green?style=flat-square)
 
-[🇬🇧 English](#gb-english) | [🇧🇷 Português](#br-português)
+[English](#english) | [Português](#português)
 
 ---
 
-## 🇬🇧 English
+## English
 
 The **PlayerHUD Availability Condition** is a plugin for Moodle that allows teachers to restrict access to activities, resources, or sections based on the student's progress in the **PlayerHUD Block**. It introduces gamification mechanics by unlocking content only when students reach a certain **Level** or collect specific **Items**.
 
@@ -24,7 +24,7 @@ The **PlayerHUD Availability Condition** is a plugin for Moodle that allows teac
 
 ### 📦 Requirements
 
-* **Moodle:** 4.1 or higher.
+* **Moodle:** 4.5 or higher.
 * **Dependency:** [Block PlayerHUD](https://github.com/jeanlucio/moodle-block_playerhud) (must be installed and enabled in the course).
 
 ### 🛠️ Installation
@@ -46,9 +46,9 @@ The **PlayerHUD Availability Condition** is a plugin for Moodle that allows teac
 
 ---
 
-## 🇧🇷 Português
+## Português
 
-A **Restrição de Acesso por PlayerHUD** é um plugin para Moodle que permite aos professores restringir o acesso a atividades, recursos ou tópicos com base no progresso do aluno no **Bloco PlayerHUD**. Ele introduz mecânicas de gamificação ao liberar conteúdo apenas quando os alunos atingem um determinado **Nível** ou coletam **Itens** específicos.
+A **Restrição de Acesso do PlayerHUD** é um plugin para Moodle que permite aos professores restringirem o acesso a atividades, recursos ou tópicos com base no progresso do aluno no **Bloco PlayerHUD**. Ele introduz mecânicas de gamificação ao liberar conteúdo apenas quando os alunos atingem um determinado **Nível** ou coletam **Itens** específicos.
 
 ### ✨ Funcionalidades
 
@@ -62,7 +62,7 @@ A **Restrição de Acesso por PlayerHUD** é um plugin para Moodle que permite a
 
 ### 📦 Requisitos
 
-* **Moodle:** 4.1 ou superior.
+* **Moodle:** 4.5 ou superior.
 * **Dependência:** [Block PlayerHUD](https://github.com/jeanlucio/moodle-block_playerhud) (deve estar instalado e adicionado ao curso).
 
 ### 🛠️ Instalação

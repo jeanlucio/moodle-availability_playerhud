@@ -35,6 +35,7 @@ $string['missing'] = '(Missing data)';
 $string['op_equal'] = 'exactly';
 $string['op_less'] = 'less than';
 $string['op_more'] = 'more than';
+$string['op_text_atleast'] = 'at least';
 $string['op_text_equal'] = 'exactly';
 $string['op_text_less'] = 'less than';
 $string['op_text_more'] = 'more than';

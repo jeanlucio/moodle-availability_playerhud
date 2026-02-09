@@ -69,6 +69,7 @@ M.availability_playerhud.form.getNode = function(json) {
         qty: M.util.get_string('label_item_qty', 'availability_playerhud'),
         type: M.util.get_string('label_type', 'availability_playerhud'),
         empty: M.util.get_string('empty', 'availability_playerhud'),
+        atleast: M.util.get_string('op_atleast', 'availability_playerhud'),
         more: M.util.get_string('op_more', 'availability_playerhud'),
         less: M.util.get_string('op_less', 'availability_playerhud'),
         equal: M.util.get_string('op_equal', 'availability_playerhud')
@@ -114,6 +115,7 @@ M.availability_playerhud.form.getNode = function(json) {
     html += '<label class="mb-0">';
     html += '<span class="visually-hidden">' + s.type + '</span>'; // Rule 6/8: Accessibility
     html += '<select name="itemop" class="form-select form-select-sm d-inline-block w-auto">';
+    html += '<option value=">=">' + s.atleast + '</option>';
     html += '<option value=">">' + s.more + '</option>';
     html += '<option value="<">' + s.less + '</option>';
     html += '<option value="=">' + s.equal + '</option>';
