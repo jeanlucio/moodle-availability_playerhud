@@ -32,6 +32,7 @@ $string['label_item_select'] = 'Required Item:';
 $string['label_min_level'] = 'Required Level:';
 $string['label_type'] = 'Type:';
 $string['missing'] = '(Missing data)';
+$string['op_atleast'] = 'at least';
 $string['op_equal'] = 'exactly';
 $string['op_less'] = 'less than';
 $string['op_more'] = 'more than';

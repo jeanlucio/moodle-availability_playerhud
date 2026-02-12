@@ -168,7 +168,7 @@ class condition extends \core_availability\condition {
                 case '=':
                     $optext = get_string('op_text_equal', 'availability_playerhud');
                     break;
-                case '>=': // Adicionado explicitamente
+                case '>=':
                 default:
                     $optext = get_string('op_text_atleast', 'availability_playerhud');
                     break;
