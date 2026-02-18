@@ -1,4 +1,4 @@
-# Moodle PlayerHUD Availability Condition
+# Moodle PlayerHUD Restrição de Acesso
 
 ![Moodle](https://img.shields.io/badge/Moodle-4.5%2B-orange?style=flat-square&logo=moodle&logoColor=white)
 ![License](https://img.shields.io/badge/License-GPLv3-blue?style=flat-square)
@@ -6,86 +6,187 @@
 
 [English](#english) | [Português](#português)
 
----
 
 ## English
 
-The **PlayerHUD Availability Condition** is a plugin for Moodle that allows teachers to restrict access to activities, resources, or sections based on the student's progress in the **PlayerHUD Block**. It introduces gamification mechanics by unlocking content only when students reach a certain **Level** or collect specific **Items**.
+The **PlayerHUD Availability Condition** is an extension plugin for Moodle that allows teachers to restrict access to activities, resources, or course sections based on a student's progress in the PlayerHUD Block.
+
+It enables gamified progression rules by unlocking content only when students reach specific **Levels** or possess certain **Items**.
+
+---
 
 ### ✨ Features
 
-* **Restrict by Level:** Unlock content only when a student reaches a specific level (e.g., "Level 5 or higher").
-* **Restrict by Item:** Unlock content based on items in the student's inventory.
-* **Advanced Logic:** Use operators to create complex conditions:
-    * *More than (>)*
-    * *Less than (<)*
-    * *Exactly (=)*
-    * *Greater or equal (>=)* (Default)
+* 🎯 Restrict access by minimum Level
+* 🎒 Restrict access based on collected Items
+* 🔢 Flexible comparison operators:
+  * Greater than (>)
+  * Less than (<)
+  * Exactly (=)
+  * Greater or equal (>=)
+* 🧠 Fully integrated with Moodle’s native Restrict Access system
+* ⚡ Real-time validation based on PlayerHUD data
+
+---
+
+### 🔗 Part of the PlayerHUD Ecosystem
+
+This plugin works together with:
+
+* **PlayerHUD Block (Required)**  
+  👉 https://github.com/jeanlucio/moodle-block_playerhud
+
+Optional extension:
+
+* **PlayerHUD Filter**  
+  👉 https://github.com/jeanlucio/moodle-filter_playerhud
+
+---
 
 ### 📦 Requirements
 
-* **Moodle:** 4.5 or higher.
-* **Dependency:** [Block PlayerHUD](https://github.com/jeanlucio/moodle-block_playerhud) (must be installed and enabled in the course).
+* **Moodle:** 4.5 or higher
+* **Required Dependency:** PlayerHUD Block  
+  https://github.com/jeanlucio/moodle-block_playerhud
+* **PHP:** Compatible with your Moodle version
+
+---
 
 ### 🛠️ Installation
 
-1.  Download the `.zip` file or clone this repository.
-2.  Extract the content into your Moodle's `availability/condition/` directory.
-3.  Rename the folder to `playerhud` (if it isn't already).
-    * Path should be: `your-moodle/availability/condition/playerhud/`
-4.  Go to **Site administration > Notifications** to complete the installation.
+1. Ensure the **PlayerHUD Block** is installed first.  
+   👉 https://github.com/jeanlucio/moodle-block_playerhud  
+   This availability condition depends on the block and will not function without it.
+
+2. Download the `.zip` file or clone this repository.
+3. Extract the folder into your Moodle `availability/condition/` directory.
+4. Rename the folder to `playerhud` (if necessary).  
+   Final path:  
+   `your-moodle/availability/condition/playerhud/`
+5. Visit **Site administration > Notifications** to complete installation.
+
+---
 
 ### 📖 Usage
 
-1.  In a course, turn **Edit mode on**.
-2.  Edit an activity or resource and go to the **Restrict access** section.
-3.  Click **Add restriction...** and select **PlayerHUD**.
-4.  Choose the restriction type:
-    * **Minimum Level:** Set the required level number.
-    * **Own Item:** Select an item from the dropdown, choose an operator (e.g., "more than"), and set the quantity.
+1. Turn **Edit mode on** in a course.
+2. Edit an activity, resource, or section.
+3. Open the **Restrict access** section.
+4. Click **Add restriction…**
+5. Select **PlayerHUD**.
+6. Choose the restriction type:
+   * **Minimum Level** – Define the required level.
+   * **Own Item** – Select an item, choose an operator, and define the required quantity.
+
+Students will only gain access when the defined conditions are met.
+
+---
+
+### 🔐 Security & Compliance
+
+* Capability-based validation
+* Server-side condition evaluation
+* Fully integrated with Moodle core access control
+* No external API calls
+* Compatible with Moodle privacy API standards
+
+---
+
+## 📄 License
+
+This project is licensed under the **GNU General Public License v3 (GPLv3)**.
+
+**Copyright:** 2026 Jean Lúcio
 
 ---
 
 ## Português
 
-A **Restrição de Acesso do PlayerHUD** é um plugin para Moodle que permite aos professores restringirem o acesso a atividades, recursos ou tópicos com base no progresso do aluno no **Bloco PlayerHUD**. Ele introduz mecânicas de gamificação ao liberar conteúdo apenas quando os alunos atingem um determinado **Nível** ou coletam **Itens** específicos.
+A **Restrição de Acesso do PlayerHUD** é um plugin de extensão para Moodle que permite ao professor restringir o acesso a atividades, recursos ou seções do curso com base no progresso do aluno no Bloco PlayerHUD.
 
-### ✨ Funcionalidades
-
-* **Restrição por Nível:** Libere conteúdo apenas quando o aluno atingir um nível específico (ex: "Nível 5 ou superior").
-* **Restrição por Item:** Libere conteúdo com base nos itens do inventário do aluno.
-* **Lógica Avançada:** Use operadores para criar condições complexas:
-    * *Mais que (>)*
-    * *Menos que (<)*
-    * *Exatamente (=)*
-    * *Maior ou igual (>=)* (Padrão)
-
-### 📦 Requisitos
-
-* **Moodle:** 4.5 ou superior.
-* **Dependência:** [Block PlayerHUD](https://github.com/jeanlucio/moodle-block_playerhud) (deve estar instalado e adicionado ao curso).
-
-### 🛠️ Instalação
-
-1.  Baixe o arquivo `.zip` ou clone este repositório.
-2.  Extraia o conteúdo no diretório `availability/condition/` do seu Moodle.
-3.  Renomeie a pasta para `playerhud` (se ainda não estiver).
-    * O caminho deve ficar: `seu-moodle/availability/condition/playerhud/`
-4.  Acesse **Administração do site > Notificações** para concluir a instalação.
-
-### 📖 Como Usar
-
-1.  No curso, ative o **Modo de edição**.
-2.  Edite uma atividade ou recurso e vá até a seção **Restringir acesso**.
-3.  Clique em **Adicionar restrição...** e selecione **PlayerHUD**.
-4.  Escolha o tipo de restrição:
-    * **Nível Mínimo:** Defina o número do nível necessário.
-    * **Possuir Item:** Selecione um item da lista, escolha um operador (ex: "mais que") e defina a quantidade.
+Ele possibilita regras de progressão gamificada, liberando conteúdos apenas quando o estudante atinge determinados **Níveis** ou possui **Itens** específicos.
 
 ---
 
-## 📄 License / Licença
+### ✨ Funcionalidades
 
-This project is licensed under the **GNU General Public License v3 (GPLv3)**.
+* 🎯 Restrição por Nível mínimo
+* 🎒 Restrição baseada em Itens coletados
+* 🔢 Operadores de comparação flexíveis:
+  * Maior que (>)
+  * Menor que (<)
+  * Exatamente (=)
+  * Maior ou igual (>=)
+* 🧠 Integração total com o sistema nativo de “Restringir acesso” do Moodle
+* ⚡ Validação em tempo real com base nos dados do PlayerHUD
+
+---
+
+### 🔗 Parte do Ecossistema PlayerHUD
+
+Este plugin funciona em conjunto com:
+
+* **Bloco PlayerHUD (Obrigatório)**  
+  👉 https://github.com/jeanlucio/moodle-block_playerhud
+
+Extensão opcional:
+
+* **Filtro PlayerHUD**  
+  👉 https://github.com/jeanlucio/moodle-filter_playerhud
+
+---
+
+### 📦 Requisitos
+
+* **Moodle:** 4.5 ou superior
+* **Dependência Obrigatória:** Bloco PlayerHUD  
+  https://github.com/jeanlucio/moodle-block_playerhud
+* **PHP:** Compatível com a versão do Moodle
+
+---
+
+### 🛠️ Instalação
+
+1. Certifique-se de que o **Bloco PlayerHUD** esteja instalado primeiro.  
+   👉 https://github.com/jeanlucio/moodle-block_playerhud  
+   Esta restrição depende do bloco e não funcionará sem ele.
+
+2. Baixe o arquivo `.zip` ou clone o repositório.
+3. Extraia a pasta para o diretório `availability/condition/` do seu Moodle.
+4. Renomeie para `playerhud` (se necessário).  
+   Caminho final:  
+   `seu-moodle/availability/condition/playerhud/`
+5. Acesse **Administração do site > Notificações** para concluir a instalação.
+
+---
+
+### 📖 Como Usar
+
+1. Ative o **Modo de edição** no curso.
+2. Edite uma atividade, recurso ou seção.
+3. Vá até a seção **Restringir acesso**.
+4. Clique em **Adicionar restrição…**
+5. Selecione **PlayerHUD**.
+6. Escolha o tipo de restrição:
+   * **Nível Mínimo** – Defina o nível necessário.
+   * **Possuir Item** – Selecione o item, escolha o operador e defina a quantidade.
+
+O acesso será liberado automaticamente quando as condições forem atendidas.
+
+---
+
+### 🔐 Segurança e Conformidade
+
+* Validação baseada em capabilities
+* Avaliação das condições no servidor
+* Integração total com o controle de acesso do Moodle
+* Não utiliza APIs externas
+* Compatível com os padrões de privacidade do Moodle
+
+---
+
+## 📄 Licença
+
+Este projeto é licenciado sob a **GNU General Public License v3 (GPLv3)**.
 
 **Copyright:** 2026 Jean Lúcio

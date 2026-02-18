@@ -43,6 +43,7 @@ $string['op_text_more'] = 'more than';
 $string['option_item'] = 'Own Item';
 $string['option_level'] = 'Minimum Level';
 $string['pluginname'] = 'PlayerHUD Restriction';
+$string['privacy:metadata'] = 'The PlayerHUD availability restriction does not store any personal data.';
 $string['requires_item'] = 'You must have <strong>{$a->op} {$a->qty}x {$a->item}</strong>.';
 $string['requires_level'] = 'You must reach <strong>Level {$a}</strong>.';
 $string['title'] = 'PlayerHUD';
