@@ -3,6 +3,7 @@
 ![Moodle](https://img.shields.io/badge/Moodle-4.5%2B-orange?style=flat-square&logo=moodle&logoColor=white)
 ![License](https://img.shields.io/badge/License-GPLv3-blue?style=flat-square)
 ![Status](https://img.shields.io/badge/Status-Stable-green?style=flat-square)
+![Part of PlayerHUD Ecosystem](https://img.shields.io/badge/Part_of-PlayerHUD_Ecosystem-6f42c1?style=for-the-badge&logo=gamepad&logoColor=white)
 ![Role](https://img.shields.io/badge/Role-Access_Control-d63384?style=flat-square)
 
 
