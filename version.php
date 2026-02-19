@@ -28,5 +28,5 @@ $plugin->component = 'availability_playerhud';
 $plugin->version   = 2026021801;
 $plugin->requires  = 2024100700;        // Requires: Moodle 4.5+.
 $plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = 'v1.0';
+$plugin->release   = 'v1.0.1';
 $plugin->dependencies = ['block_playerhud' => 2026021800]; // Forces the matching mod version.
