@@ -22,7 +22,6 @@
  */
 
 /* eslint-disable camelcase */
-
 /**
  * PlayerHUD Availability Form.
  *
@@ -61,7 +60,6 @@ M.availability_playerhud.form.initInner = function(items) {
  * @return {Y.Node} The YUI node.
  */
 M.availability_playerhud.form.getNode = function(json) {
-    // Rule 4: No hardcoded strings. Fetching from language pack.
     var s = {
         level: M.util.get_string('option_level', 'availability_playerhud'),
         item: M.util.get_string('option_item', 'availability_playerhud'),
@@ -75,35 +73,26 @@ M.availability_playerhud.form.getNode = function(json) {
         equal: M.util.get_string('op_equal', 'availability_playerhud')
     };
 
-    // Rule 1 & 14: Bootstrap 5 classes (gap-2 handles the vertical/horizontal spacing).
     var html = '<span class="ph-controls d-inline-flex flex-wrap align-items-center gap-2">';
-
-    // Type Selection
-    // Rule 8: Implicit label wrapping.
     html += '<label class="mb-0">' + s.type + ' ';
     html += '<select name="subtype" class="form-select form-select-sm d-inline-block w-auto ms-1">';
     html += '<option value="level">' + s.level + '</option>';
     html += '<option value="item">' + s.item + '</option>';
     html += '</select></label>';
 
-    // --- Option: Level ---
     html += '<span class="ph-option-level">';
     html += '<label class="mb-0">' + s.min_level + ' ';
-    // Rule 11: Class .ph-input-qty used for width.
     html += '<input type="number" name="levelval" class="form-control form-select-sm d-inline-block ph-input-qty ms-1" ';
     html += 'min="1" value="1">';
     html += '</label></span>';
 
-    // --- Option: Item ---
     html += '<span class="ph-option-item">';
-
-    // Item Selection
     html += '<label class="mb-0">';
-    // Rule 11: Class .ph-select-item used for max-width.
     html += '<select name="itemid" class="form-select form-select-sm d-inline-block ph-select-item">';
 
+    var i;
     if (this.items && this.items.length > 0) {
-        for (var i = 0; i < this.items.length; i++) {
+        for (i = 0; i < this.items.length; i++) {
             html += '<option value="' + this.items[i].id + '">' + Y.Escape.html(this.items[i].name) + '</option>';
         }
     } else {
@@ -111,9 +100,8 @@ M.availability_playerhud.form.getNode = function(json) {
     }
     html += '</select></label>';
 
-    // Operator Selection
     html += '<label class="mb-0">';
-    html += '<span class="visually-hidden">' + s.type + '</span>'; // Rule 6/8: Accessibility
+    html += '<span class="visually-hidden">' + s.type + '</span>';
     html += '<select name="itemop" class="form-select form-select-sm d-inline-block w-auto">';
     html += '<option value=">=">' + s.atleast + '</option>';
     html += '<option value=">">' + s.more + '</option>';
@@ -121,23 +109,20 @@ M.availability_playerhud.form.getNode = function(json) {
     html += '<option value="=">' + s.equal + '</option>';
     html += '</select></label>';
 
-    // Quantity Input
     html += '<label class="mb-0">';
-    html += '<span class="visually-hidden">' + s.qty + '</span>'; // Rule 8: Accessibility
+    html += '<span class="visually-hidden">' + s.qty + '</span>';
     html += '<input type="number" name="itemqty" class="form-control form-select-sm d-inline-block ph-input-qty" ';
     html += 'min="1" value="1">';
     html += '</label></span>';
-
-    html += '</span>'; // End container
+    html += '</span>';
 
     var node = Y.Node.create(html);
-
-    // Visibility Logic
     var subtype = node.one('select[name=subtype]');
+
     var updateVisibility = function() {
         var val = subtype.get('value');
         if (val === 'level') {
-            node.one('.ph-option-level').setStyle('display', 'contents'); // 'contents' works better with flex gap
+            node.one('.ph-option-level').setStyle('display', 'contents');
             node.one('.ph-option-item').setStyle('display', 'none');
         } else {
             node.one('.ph-option-level').setStyle('display', 'none');
@@ -150,7 +135,6 @@ M.availability_playerhud.form.getNode = function(json) {
         M.core_availability.form.update();
     });
 
-    // Fill values if editing existing restriction
     if (json.subtype) {
         subtype.set('value', json.subtype);
         if (json.subtype === 'item') {
@@ -163,16 +147,13 @@ M.availability_playerhud.form.getNode = function(json) {
             if (json.itemop) {
                 node.one('select[name=itemop]').set('value', json.itemop);
             }
-        } else {
-            if (json.levelval) {
-                node.one('input[name=levelval]').set('value', json.levelval);
-            }
+        } else if (json.levelval) {
+            node.one('input[name=levelval]').set('value', json.levelval);
         }
     }
 
     updateVisibility();
 
-    // Event Listeners for auto-update
     node.all('input, select').on('change', function() {
         M.core_availability.form.update();
     });
@@ -198,15 +179,4 @@ M.availability_playerhud.form.fillValue = function(value, node) {
         value.itemqty = parseInt(node.one('input[name=itemqty]').get('value'), 10) || 1;
         value.itemop = node.one('select[name=itemop]').get('value');
     }
-};
-
-/**
- * Handles form validation errors.
- *
- * @method fillErrors
- * @param {Array} errors Array to push errors to.
- * @param {Y.Node} node The form node.
- */
-M.availability_playerhud.form.fillErrors = function(errors, node) {
-    // Optional validation logic
 };
