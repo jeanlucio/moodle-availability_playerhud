@@ -19,6 +19,11 @@ namespace availability_playerhud\tests;
 use advanced_testcase;
 use availability_playerhud\condition;
 
+defined('MOODLE_INTERNAL') || die();
+
+global $CFG;
+require_once($CFG->dirroot . '/availability/tests/fixtures/mock_info.php');
+
 /**
  * Tests for the PlayerHUD availability condition.
  *
