@@ -14,10 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace availability_playerhud\tests;
+namespace availability_playerhud;
 
 use advanced_testcase;
-use availability_playerhud\condition;
 
 defined('MOODLE_INTERNAL') || die();
 
