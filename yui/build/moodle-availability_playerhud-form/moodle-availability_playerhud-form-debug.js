@@ -212,4 +212,5 @@ M.availability_playerhud.form.fillValue = function(value, node) {
     }
 };
 
+
 }, '@VERSION@', {"requires": ["base", "node", "event", "moodle-core_availability-form", "escape"]});
