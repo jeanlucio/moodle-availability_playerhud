@@ -232,6 +232,7 @@ final class condition_test extends advanced_testcase {
         $classid = $DB->insert_record('block_playerhud_classes', $rpgclass);
 
         $progress = new \stdClass();
+        $progress->blockinstanceid = $this->instanceid;
         $progress->userid = $userid;
         $progress->classid = $classid;
         $progress->karma = 0;
