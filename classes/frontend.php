@@ -84,8 +84,24 @@ class frontend extends \core_availability\frontend {
             }
         }
 
-        // Returns an array. The first element will be the 'items' argument in JS.
-        return [$items];
+        $classes = [];
+        if ($block) {
+            $records = $DB->get_records(
+                'block_playerhud_classes',
+                ['blockinstanceid' => $block->id],
+                'name ASC',
+                'id, name'
+            );
+            foreach ($records as $r) {
+                $classes[] = [
+                    'id' => (int)$r->id,
+                    'name' => format_string($r->name),
+                ];
+            }
+        }
+
+        // Returns an array. The first element will be 'items' and the second 'classes' in JS.
+        return [$items, $classes];
     }
 
     /**
@@ -98,10 +114,12 @@ class frontend extends \core_availability\frontend {
             'empty',
             'option_level',
             'option_item',
+            'option_class',
             'label_type',
             'label_min_level',
             'label_item_select',
             'label_item_qty',
+            'label_class_select',
             'op_atleast',
             'op_more',
             'op_less',

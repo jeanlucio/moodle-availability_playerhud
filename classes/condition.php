@@ -54,6 +54,7 @@ class condition extends \core_availability\condition {
             'itemid' => $this->config->itemid ?? 0,
             'itemqty' => $this->config->itemqty ?? 1,
             'itemop' => $this->config->itemop ?? '>=',
+            'classid' => $this->config->classid ?? 0,
         ];
     }
 
@@ -126,6 +127,27 @@ class condition extends \core_availability\condition {
             }
         }
 
+        // Class Logic: user must have the RPG class assigned.
+        if (isset($this->config->subtype) && $this->config->subtype === 'class') {
+            $classid = (int)($this->config->classid ?? 0);
+            if ($classid <= 0) {
+                return false;
+            }
+
+            $sql = "SELECT rp.id
+                      FROM {block_playerhud_rpg_progress} rp
+                      JOIN {block_playerhud_classes} c ON c.id = rp.classid
+                     WHERE rp.userid        = :userid
+                       AND rp.classid       = :classid
+                       AND c.blockinstanceid = :blockinstanceid";
+
+            return $DB->record_exists_sql($sql, [
+                'userid'          => $userid,
+                'classid'         => $classid,
+                'blockinstanceid' => $block->id,
+            ]);
+        }
+
         return false;
     }
 
@@ -181,6 +203,20 @@ class condition extends \core_availability\condition {
 
             return get_string('requires_item', 'availability_playerhud', $a);
         }
+
+        if ($this->config->subtype === 'class') {
+            $classname = get_string('missing', 'availability_playerhud');
+            if (!empty($this->config->classid)) {
+                $classname = $DB->get_field(
+                    'block_playerhud_classes',
+                    'name',
+                    ['id' => $this->config->classid]
+                ) ?: $classname;
+            }
+
+            return get_string('requires_class', 'availability_playerhud', format_string($classname));
+        }
+
         return '';
     }
 

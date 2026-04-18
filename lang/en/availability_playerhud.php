@@ -24,9 +24,10 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$string['description'] = 'Allow access based on Level or Items collected in PlayerHUD.';
+$string['description'] = 'Allow access based on Level, Items or RPG Class in PlayerHUD.';
 $string['empty'] = 'No items found';
 $string['error_block_missing'] = 'PlayerHUD block not found in this course.';
+$string['label_class_select'] = 'Required Class:';
 $string['label_item_qty'] = 'Minimum Quantity:';
 $string['label_item_select'] = 'Required Item:';
 $string['label_min_level'] = 'Required Level:';
@@ -40,10 +41,12 @@ $string['op_text_atleast'] = 'at least';
 $string['op_text_equal'] = 'exactly';
 $string['op_text_less'] = 'less than';
 $string['op_text_more'] = 'more than';
+$string['option_class'] = 'RPG Class';
 $string['option_item'] = 'Own Item';
 $string['option_level'] = 'Minimum Level';
 $string['pluginname'] = 'PlayerHUD Availability Condition';
 $string['privacy:metadata'] = 'The PlayerHUD Availability Condition plugin does not store any personal data. It evaluates access rules based on data provided by the PlayerHUD Block.';
+$string['requires_class'] = 'You must belong to the <strong>{$a}</strong> class.';
 $string['requires_item'] = 'You must have <strong>{$a->op} {$a->qty}x {$a->item}</strong>.';
 $string['requires_level'] = 'You must reach <strong>Level {$a}</strong>.';
 $string['title'] = 'PlayerHUD';
