@@ -1,6 +1,4 @@
-YUI.add('moodle-availability_playerhud-form', function (Y, NAME) {
-
-// This file is part of Moodle - http://moodle.org/
+// This file is part of Moodle - https://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -13,14 +11,14 @@ YUI.add('moodle-availability_playerhud-form', function (Y, NAME) {
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * PlayerHUD Availability Form.
  *
  * @package    availability_playerhud
  * @copyright  2026 Jean Lúcio
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 /* eslint-disable camelcase */
@@ -211,6 +209,3 @@ M.availability_playerhud.form.fillValue = function(value, node) {
         value.itemop = node.one('select[name=itemop]').get('value');
     }
 };
-
-
-}, '@VERSION@', {"requires": ["base", "node", "event", "moodle-core_availability-form", "escape"]});
