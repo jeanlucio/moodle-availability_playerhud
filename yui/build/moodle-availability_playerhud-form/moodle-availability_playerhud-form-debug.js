@@ -1,3 +1,5 @@
+YUI.add('moodle-availability_playerhud-form', function (Y, NAME) {
+
 // This file is part of Moodle - https://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -209,3 +211,6 @@ M.availability_playerhud.form.fillValue = function(value, node) {
         value.itemop = node.one('select[name=itemop]').get('value');
     }
 };
+
+
+}, '@VERSION@', {"requires": ["base", "node", "event", "moodle-core_availability-form", "escape"]});
