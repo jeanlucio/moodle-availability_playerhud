@@ -1,5 +1,5 @@
 <?php
-// This file is part of Moodle - http://moodle.org/
+// This file is part of Moodle - https://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -12,14 +12,14 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * Condition class for PlayerHUD availability.
  *
  * @package    availability_playerhud
  * @copyright  2026 Jean Lúcio
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace availability_playerhud;
@@ -29,7 +29,7 @@ namespace availability_playerhud;
  *
  * @package    availability_playerhud
  * @copyright  2026 Jean Lúcio
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class condition extends \core_availability\condition {
     /** @var \stdClass Structure of the data saved in DB. */
@@ -54,6 +54,7 @@ class condition extends \core_availability\condition {
             'itemid' => $this->config->itemid ?? 0,
             'itemqty' => $this->config->itemqty ?? 1,
             'itemop' => $this->config->itemop ?? '>=',
+            'classid' => $this->config->classid ?? 0,
         ];
     }
 
@@ -126,6 +127,27 @@ class condition extends \core_availability\condition {
             }
         }
 
+        // Class Logic: user must have the RPG class assigned.
+        if (isset($this->config->subtype) && $this->config->subtype === 'class') {
+            $classid = (int)($this->config->classid ?? 0);
+            if ($classid <= 0) {
+                return false;
+            }
+
+            $sql = "SELECT rp.id
+                      FROM {block_playerhud_rpg_progress} rp
+                      JOIN {block_playerhud_classes} c ON c.id = rp.classid
+                     WHERE rp.userid        = :userid
+                       AND rp.classid       = :classid
+                       AND c.blockinstanceid = :blockinstanceid";
+
+            return $DB->record_exists_sql($sql, [
+                'userid'          => $userid,
+                'classid'         => $classid,
+                'blockinstanceid' => $block->id,
+            ]);
+        }
+
         return false;
     }
 
@@ -181,6 +203,20 @@ class condition extends \core_availability\condition {
 
             return get_string('requires_item', 'availability_playerhud', $a);
         }
+
+        if ($this->config->subtype === 'class') {
+            $classname = get_string('missing', 'availability_playerhud');
+            if (!empty($this->config->classid)) {
+                $classname = $DB->get_field(
+                    'block_playerhud_classes',
+                    'name',
+                    ['id' => $this->config->classid]
+                ) ?: $classname;
+            }
+
+            return get_string('requires_class', 'availability_playerhud', format_string($classname));
+        }
+
         return '';
     }
 

@@ -1,5 +1,5 @@
 <?php
-// This file is part of Moodle - http://moodle.org/
+// This file is part of Moodle - https://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -12,14 +12,14 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * Frontend class for PlayerHUD availability.
  *
  * @package    availability_playerhud
  * @copyright  2026 Jean Lúcio
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace availability_playerhud;
@@ -30,7 +30,7 @@ namespace availability_playerhud;
  *
  * @package    availability_playerhud
  * @copyright  2026 Jean Lúcio
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class frontend extends \core_availability\frontend {
     /**
@@ -84,8 +84,24 @@ class frontend extends \core_availability\frontend {
             }
         }
 
-        // Returns an array. The first element will be the 'items' argument in JS.
-        return [$items];
+        $classes = [];
+        if ($block) {
+            $records = $DB->get_records(
+                'block_playerhud_classes',
+                ['blockinstanceid' => $block->id],
+                'name ASC',
+                'id, name'
+            );
+            foreach ($records as $r) {
+                $classes[] = [
+                    'id' => (int)$r->id,
+                    'name' => format_string($r->name),
+                ];
+            }
+        }
+
+        // Returns an array. The first element will be 'items' and the second 'classes' in JS.
+        return [$items, $classes];
     }
 
     /**
@@ -98,10 +114,12 @@ class frontend extends \core_availability\frontend {
             'empty',
             'option_level',
             'option_item',
+            'option_class',
             'label_type',
             'label_min_level',
             'label_item_select',
             'label_item_qty',
+            'label_class_select',
             'op_atleast',
             'op_more',
             'op_less',

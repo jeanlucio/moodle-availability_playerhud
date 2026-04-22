@@ -1,5 +1,5 @@
 <?php
-// This file is part of Moodle - http://moodle.org/
+// This file is part of Moodle - https://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -12,7 +12,7 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace availability_playerhud;
 
@@ -29,7 +29,7 @@ require_once($CFG->dirroot . '/availability/tests/fixtures/mock_info.php');
  * @package    availability_playerhud
  * @category   test
  * @copyright  2026 Jean Lúcio
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers     \availability_playerhud\condition
  */
 final class condition_test extends advanced_testcase {
@@ -214,6 +214,84 @@ final class condition_test extends advanced_testcase {
     }
 
     /**
+     * Helper to create an RPG class and assign it to a user.
+     *
+     * @param int $userid The user ID.
+     * @return int The class ID.
+     */
+    protected function create_and_assign_class(int $userid): int {
+        global $DB;
+
+        $rpgclass = new \stdClass();
+        $rpgclass->blockinstanceid = $this->instanceid;
+        $rpgclass->name = 'Warrior';
+        $rpgclass->description = 'A mighty warrior.';
+        $rpgclass->base_hp = 100;
+        $rpgclass->timecreated = time();
+        $rpgclass->timemodified = time();
+        $classid = $DB->insert_record('block_playerhud_classes', $rpgclass);
+
+        $progress = new \stdClass();
+        $progress->blockinstanceid = $this->instanceid;
+        $progress->userid = $userid;
+        $progress->classid = $classid;
+        $progress->karma = 0;
+        $progress->current_nodes = '[]';
+        $progress->completed_chapters = '[]';
+        $progress->timecreated = time();
+        $progress->timemodified = time();
+        $DB->insert_record('block_playerhud_rpg_progress', $progress);
+
+        return $classid;
+    }
+
+    /**
+     * Test restriction based on RPG Class.
+     */
+    public function test_is_available_class(): void {
+        $user = $this->create_player_with_xp(0);
+        $info = new \core_availability\mock_info($this->course, $user->id);
+
+        $classid = $this->create_and_assign_class($user->id);
+
+        // User has the class: should pass.
+        $condpass = new condition((object)['subtype' => 'class', 'classid' => $classid]);
+        $this->assertTrue($condpass->is_available(false, $info, true, $user->id));
+
+        // User does not have a different class: should fail.
+        $condfail = new condition((object)['subtype' => 'class', 'classid' => $classid + 9999]);
+        $this->assertFalse($condfail->is_available(false, $info, true, $user->id));
+
+        // Classid = 0 is always false (no class selected).
+        $condzero = new condition((object)['subtype' => 'class', 'classid' => 0]);
+        $this->assertFalse($condzero->is_available(false, $info, true, $user->id));
+    }
+
+    /**
+     * Test that a user without any class assigned fails the class restriction.
+     */
+    public function test_is_available_class_no_progress(): void {
+        global $DB;
+
+        $classid = 42;
+        $user = $this->create_player_with_xp(0);
+        $info = new \core_availability\mock_info($this->course, $user->id);
+
+        // Create the class record in DB but do NOT assign to user.
+        $rpgclass = new \stdClass();
+        $rpgclass->blockinstanceid = $this->instanceid;
+        $rpgclass->name = 'Mage';
+        $rpgclass->description = 'A powerful mage.';
+        $rpgclass->base_hp = 60;
+        $rpgclass->timecreated = time();
+        $rpgclass->timemodified = time();
+        $classid = $DB->insert_record('block_playerhud_classes', $rpgclass);
+
+        $cond = new condition((object)['subtype' => 'class', 'classid' => $classid]);
+        $this->assertFalse($cond->is_available(false, $info, true, $user->id));
+    }
+
+    /**
      * Test the description strings returned by the condition.
      */
     public function test_get_description(): void {
@@ -232,5 +310,11 @@ final class condition_test extends advanced_testcase {
         $descitem = $conditem->get_description(true, false, $info);
         $this->assertStringContainsString('2', $descitem);
         $this->assertStringContainsString('Magic Key', $descitem);
+
+        // Test Class Description.
+        $classid = $this->create_and_assign_class($user->id);
+        $condclass = new condition((object)['subtype' => 'class', 'classid' => $classid]);
+        $descclass = $condclass->get_description(true, false, $info);
+        $this->assertStringContainsString('Warrior', $descclass);
     }
 }

@@ -1,6 +1,6 @@
 YUI.add('moodle-availability_playerhud-form', function (Y, NAME) {
 
-// This file is part of Moodle - http://moodle.org/
+// This file is part of Moodle - https://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -13,14 +13,14 @@ YUI.add('moodle-availability_playerhud-form', function (Y, NAME) {
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * PlayerHUD Availability Form.
  *
  * @package    availability_playerhud
  * @copyright  2026 Jean Lúcio
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 /* eslint-disable camelcase */
@@ -45,13 +45,22 @@ M.availability_playerhud.form = Y.Object(M.core_availability.plugin);
 M.availability_playerhud.form.items = null;
 
 /**
+ * Initialized classes from PHP.
+ * @property classes
+ * @type Array
+ */
+M.availability_playerhud.form.classes = null;
+
+/**
  * Initialises this plugin.
  *
  * @method initInner
  * @param {Array} items List of items available in PlayerHUD block.
+ * @param {Array} classes List of RPG classes available in PlayerHUD block.
  */
-M.availability_playerhud.form.initInner = function(items) {
+M.availability_playerhud.form.initInner = function(items, classes) {
     this.items = items || [];
+    this.classes = classes || [];
 };
 
 /**
@@ -65,6 +74,7 @@ M.availability_playerhud.form.getNode = function(json) {
     var s = {
         level: M.util.get_string('option_level', 'availability_playerhud'),
         item: M.util.get_string('option_item', 'availability_playerhud'),
+        rpgclass: M.util.get_string('option_class', 'availability_playerhud'),
         min_level: M.util.get_string('label_min_level', 'availability_playerhud'),
         qty: M.util.get_string('label_item_qty', 'availability_playerhud'),
         type: M.util.get_string('label_type', 'availability_playerhud'),
@@ -72,7 +82,8 @@ M.availability_playerhud.form.getNode = function(json) {
         atleast: M.util.get_string('op_atleast', 'availability_playerhud'),
         more: M.util.get_string('op_more', 'availability_playerhud'),
         less: M.util.get_string('op_less', 'availability_playerhud'),
-        equal: M.util.get_string('op_equal', 'availability_playerhud')
+        equal: M.util.get_string('op_equal', 'availability_playerhud'),
+        class_select: M.util.get_string('label_class_select', 'availability_playerhud')
     };
 
     var html = '<span class="ph-controls d-inline-flex flex-wrap align-items-center gap-2">';
@@ -80,6 +91,7 @@ M.availability_playerhud.form.getNode = function(json) {
     html += '<select name="subtype" class="form-select form-select-sm d-inline-block w-auto ms-1">';
     html += '<option value="level">' + s.level + '</option>';
     html += '<option value="item">' + s.item + '</option>';
+    html += '<option value="class">' + s.rpgclass + '</option>';
     html += '</select></label>';
 
     html += '<span class="ph-option-level">';
@@ -116,6 +128,21 @@ M.availability_playerhud.form.getNode = function(json) {
     html += '<input type="number" name="itemqty" class="form-control form-select-sm d-inline-block ph-input-qty" ';
     html += 'min="1" value="1">';
     html += '</label></span>';
+
+    html += '<span class="ph-option-class">';
+    html += '<label class="mb-0">' + s.class_select + ' ';
+    html += '<select name="classid" class="form-select form-select-sm d-inline-block ph-select-class ms-1">';
+
+    if (this.classes && this.classes.length > 0) {
+        for (i = 0; i < this.classes.length; i++) {
+            html += '<option value="' + this.classes[i].id + '">' + Y.Escape.html(this.classes[i].name) + '</option>';
+        }
+    } else {
+        html += '<option value="0">' + s.empty + '</option>';
+    }
+    html += '</select></label>';
+    html += '</span>';
+
     html += '</span>';
 
     var node = Y.Node.create(html);
@@ -123,13 +150,9 @@ M.availability_playerhud.form.getNode = function(json) {
 
     var updateVisibility = function() {
         var val = subtype.get('value');
-        if (val === 'level') {
-            node.one('.ph-option-level').setStyle('display', 'contents');
-            node.one('.ph-option-item').setStyle('display', 'none');
-        } else {
-            node.one('.ph-option-level').setStyle('display', 'none');
-            node.one('.ph-option-item').setStyle('display', 'contents');
-        }
+        node.one('.ph-option-level').setStyle('display', val === 'level' ? 'contents' : 'none');
+        node.one('.ph-option-item').setStyle('display', val === 'item' ? 'contents' : 'none');
+        node.one('.ph-option-class').setStyle('display', val === 'class' ? 'contents' : 'none');
     };
 
     subtype.on('change', function() {
@@ -148,6 +171,10 @@ M.availability_playerhud.form.getNode = function(json) {
             }
             if (json.itemop) {
                 node.one('select[name=itemop]').set('value', json.itemop);
+            }
+        } else if (json.subtype === 'class') {
+            if (json.classid) {
+                node.one('select[name=classid]').set('value', json.classid);
             }
         } else if (json.levelval) {
             node.one('input[name=levelval]').set('value', json.levelval);
@@ -176,6 +203,8 @@ M.availability_playerhud.form.fillValue = function(value, node) {
 
     if (subtype === 'level') {
         value.levelval = parseInt(node.one('input[name=levelval]').get('value'), 10) || 1;
+    } else if (subtype === 'class') {
+        value.classid = parseInt(node.one('select[name=classid]').get('value'), 10) || 0;
     } else {
         value.itemid = parseInt(node.one('select[name=itemid]').get('value'), 10) || 0;
         value.itemqty = parseInt(node.one('input[name=itemqty]').get('value'), 10) || 1;
