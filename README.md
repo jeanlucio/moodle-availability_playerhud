@@ -6,8 +6,6 @@
 ![Status](https://img.shields.io/badge/Status-Stable-green?style=flat-square)
 [![PlayerHUD Ecosystem](https://img.shields.io/badge/PlayerHUD-Ecosystem-6f42c1?style=flat-square&logo=gamepad&logoColor=white)](https://github.com/jeanlucio/moodle-block_playerhud)
 ![Role](https://img.shields.io/badge/Role-Access_Control-d63384?style=flat-square)
-![GitHub release](https://img.shields.io/github/v/release/jeanlucio/moodle-availability_playerhud?style=flat-square)
-
 
 [English](#english) | [Português](#português)
 
@@ -38,12 +36,12 @@ It enables gamified progression rules by unlocking content only when students re
 
 This plugin works together with:
 
-* **PlayerHUD Block (Required)**  
+* **PlayerHUD Block (Required)**
   👉 https://github.com/jeanlucio/moodle-block_playerhud
 
 Optional extension:
 
-* **PlayerHUD Filter**  
+* **PlayerHUD Filter**
   👉 https://github.com/jeanlucio/moodle-filter_playerhud
 
 ---
@@ -51,7 +49,7 @@ Optional extension:
 ### 📦 Requirements
 
 * **Moodle:** 4.5 or higher
-* **Required Dependency:** PlayerHUD Block  
+* **Required Dependency:** PlayerHUD Block
   https://github.com/jeanlucio/moodle-block_playerhud
 * **PHP:** Compatible with your Moodle version
 
@@ -59,14 +57,14 @@ Optional extension:
 
 ### 🛠️ Installation
 
-1. Ensure the **PlayerHUD Block** is installed first.  
-   👉 https://github.com/jeanlucio/moodle-block_playerhud  
+1. Ensure the **PlayerHUD Block** is installed first.
+   👉 https://github.com/jeanlucio/moodle-block_playerhud
    This availability condition depends on the block and will not function without it.
 
 2. Download the `.zip` file or clone this repository.
 3. Extract the folder into your Moodle `availability/condition/` directory.
-4. Rename the folder to `playerhud` (if necessary).  
-   Final path:  
+4. Rename the folder to `playerhud` (if necessary).
+   Final path:
    `your-moodle/availability/condition/playerhud/`
 5. Visit **Site administration > Notifications** to complete installation.
 
@@ -131,12 +129,12 @@ Ele possibilita regras de progressão gamificada, liberando conteúdos apenas qu
 
 Este plugin funciona em conjunto com:
 
-* **Bloco PlayerHUD (Obrigatório)**  
+* **Bloco PlayerHUD (Obrigatório)**
   👉 https://github.com/jeanlucio/moodle-block_playerhud
 
 Extensão opcional:
 
-* **Filtro PlayerHUD**  
+* **Filtro PlayerHUD**
   👉 https://github.com/jeanlucio/moodle-filter_playerhud
 
 ---
@@ -144,7 +142,7 @@ Extensão opcional:
 ### 📦 Requisitos
 
 * **Moodle:** 4.5 ou superior
-* **Dependência Obrigatória:** Bloco PlayerHUD  
+* **Dependência Obrigatória:** Bloco PlayerHUD
   https://github.com/jeanlucio/moodle-block_playerhud
 * **PHP:** Compatível com a versão do Moodle
 
@@ -152,14 +150,14 @@ Extensão opcional:
 
 ### 🛠️ Instalação
 
-1. Certifique-se de que o **Bloco PlayerHUD** esteja instalado primeiro.  
-   👉 https://github.com/jeanlucio/moodle-block_playerhud  
+1. Certifique-se de que o **Bloco PlayerHUD** esteja instalado primeiro.
+   👉 https://github.com/jeanlucio/moodle-block_playerhud
    Esta restrição depende do bloco e não funcionará sem ele.
 
 2. Baixe o arquivo `.zip` ou clone o repositório.
 3. Extraia a pasta para o diretório `availability/condition/` do seu Moodle.
-4. Renomeie para `playerhud` (se necessário).  
-   Caminho final:  
+4. Renomeie para `playerhud` (se necessário).
+   Caminho final:
    `seu-moodle/availability/condition/playerhud/`
 5. Acesse **Administração do site > Notificações** para concluir a instalação.
 
