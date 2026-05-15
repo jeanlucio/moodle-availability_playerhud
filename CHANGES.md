@@ -1,5 +1,9 @@
 # Changes
 
+## v1.4.0 (2026051500)
+
+- New: "Gamification Enabled" condition — restricts access to students with gamification active in the PlayerHUD block.
+
 ## v1.3.3 (2026051301)
 
 - Update: plugin icon.

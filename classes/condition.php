@@ -127,6 +127,11 @@ class condition extends \core_availability\condition {
             }
         }
 
+        // Gamification Logic: user must have gamification enabled.
+        if (isset($this->config->subtype) && $this->config->subtype === 'gamification') {
+            return ($player && $player->enable_gamification == 1);
+        }
+
         // Class Logic: user must have the RPG class assigned.
         if (isset($this->config->subtype) && $this->config->subtype === 'class') {
             $classid = (int)($this->config->classid ?? 0);
@@ -202,6 +207,10 @@ class condition extends \core_availability\condition {
             $a->op = $optext;
 
             return get_string('requires_item', 'availability_playerhud', $a);
+        }
+
+        if ($this->config->subtype === 'gamification') {
+            return get_string('requires_gamification_active', 'availability_playerhud');
         }
 
         if ($this->config->subtype === 'class') {
