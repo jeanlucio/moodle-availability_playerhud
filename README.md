@@ -14,7 +14,7 @@
 
 The **PlayerHUD Availability Condition** is an extension plugin for Moodle that allows teachers to restrict access to activities, resources, or course sections based on a student's progress in the PlayerHUD Block.
 
-It enables gamified progression rules by unlocking content only when students reach specific **Levels** or possess certain **Items**.
+It enables gamified progression rules by unlocking content only when students reach specific **Levels**, possess certain **Items**, belong to a **Character class**, or have **gamification active**.
 
 ---
 
@@ -27,6 +27,8 @@ It enables gamified progression rules by unlocking content only when students re
   * Less than (<)
   * Exactly (=)
   * Greater or equal (>=)
+* 🧙 Restrict access by Character class (RPG class assigned in PlayerHUD)
+* 🎮 Restrict access to students with **gamification enabled**
 * 🧠 Fully integrated with Moodle’s native Restrict Access system
 * ⚡ Real-time validation based on PlayerHUD data
 
@@ -81,6 +83,8 @@ This plugin is part of the **PlayerGames** gamification ecosystem. Together, the
 6. Choose the restriction type:
    * **Minimum Level** – Define the required level.
    * **Own Item** – Select an item, choose an operator, and define the required quantity.
+   * **Character** – Select the RPG class the student must have assigned.
+   * **Gamification Enabled** – Access is granted only to students who have gamification active.
 
 Students will only gain access when the defined conditions are met.
 
@@ -108,7 +112,7 @@ This project is licensed under the **GNU General Public License v3 (GPLv3)**.
 
 A **Restrição de Acesso do PlayerHUD** é um plugin de extensão para Moodle que permite ao professor restringir o acesso a atividades, recursos ou seções do curso com base no progresso do aluno no Bloco PlayerHUD.
 
-Ele possibilita regras de progressão gamificada, liberando conteúdos apenas quando o estudante atinge determinados **Níveis** ou possui **Itens** específicos.
+Ele possibilita regras de progressão gamificada, liberando conteúdos apenas quando o estudante atinge determinados **Níveis**, possui **Itens** específicos, pertence a uma **Classe de personagem** ou tem a **gamificação ativa**.
 
 ---
 
@@ -121,6 +125,8 @@ Ele possibilita regras de progressão gamificada, liberando conteúdos apenas qu
   * Menor que (<)
   * Exatamente (=)
   * Maior ou igual (>=)
+* 🧙 Restrição por Classe de personagem (classe RPG atribuída no PlayerHUD)
+* 🎮 Restrição a alunos com **gamificação ativa**
 * 🧠 Integração total com o sistema nativo de “Restringir acesso” do Moodle
 * ⚡ Validação em tempo real com base nos dados do PlayerHUD
 
@@ -175,6 +181,8 @@ Este plugin faz parte do ecossistema de gamificação **PlayerGames**. Juntos, e
 6. Escolha o tipo de restrição:
    * **Nível Mínimo** – Defina o nível necessário.
    * **Possuir Item** – Selecione o item, escolha o operador e defina a quantidade.
+   * **Personagem** – Selecione a classe RPG que o aluno deve ter atribuída.
+   * **Gamificação Ativa** – O acesso é liberado apenas para alunos com gamificação ativa.
 
 O acesso será liberado automaticamente quando as condições forem atendidas.
 
