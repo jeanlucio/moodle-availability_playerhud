@@ -72,6 +72,7 @@ M.availability_playerhud.form.getNode = function(json) {
     var s = {
         level: M.util.get_string('option_level', 'availability_playerhud'),
         item: M.util.get_string('option_item', 'availability_playerhud'),
+        gamification: M.util.get_string('option_gamification', 'availability_playerhud'),
         rpgclass: M.util.get_string('option_class', 'availability_playerhud'),
         min_level: M.util.get_string('label_min_level', 'availability_playerhud'),
         qty: M.util.get_string('label_item_qty', 'availability_playerhud'),
@@ -89,6 +90,7 @@ M.availability_playerhud.form.getNode = function(json) {
     html += '<select name="subtype" class="form-select form-select-sm d-inline-block w-auto ms-1">';
     html += '<option value="level">' + s.level + '</option>';
     html += '<option value="item">' + s.item + '</option>';
+    html += '<option value="gamification">' + s.gamification + '</option>';
     html += '<option value="class">' + s.rpgclass + '</option>';
     html += '</select></label>';
 
@@ -151,6 +153,7 @@ M.availability_playerhud.form.getNode = function(json) {
         node.one('.ph-option-level').setStyle('display', val === 'level' ? 'contents' : 'none');
         node.one('.ph-option-item').setStyle('display', val === 'item' ? 'contents' : 'none');
         node.one('.ph-option-class').setStyle('display', val === 'class' ? 'contents' : 'none');
+        // Gamification has no extra inputs — nothing to show/hide.
     };
 
     subtype.on('change', function() {
