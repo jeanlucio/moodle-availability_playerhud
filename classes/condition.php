@@ -175,6 +175,8 @@ class condition extends \core_availability\condition {
             return get_string('requires_level', 'availability_playerhud', $this->config->levelval);
         }
 
+        $context = $info->get_context();
+
         if ($this->config->subtype === 'item') {
             $itemname = get_string('missing', 'availability_playerhud');
             if (!empty($this->config->itemid)) {
@@ -203,7 +205,7 @@ class condition extends \core_availability\condition {
 
             $a = new \stdClass();
             $a->qty = $this->config->itemqty;
-            $a->item = format_string($itemname);
+            $a->item = format_string($itemname, true, ['context' => $context]);
             $a->op = $optext;
 
             return get_string('requires_item', 'availability_playerhud', $a);
@@ -223,7 +225,7 @@ class condition extends \core_availability\condition {
                 ) ?: $classname;
             }
 
-            return get_string('requires_class', 'availability_playerhud', format_string($classname));
+            return get_string('requires_class', 'availability_playerhud', format_string($classname, true, ['context' => $context]));
         }
 
         return '';
