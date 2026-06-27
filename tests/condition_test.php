@@ -305,16 +305,159 @@ final class condition_test extends advanced_testcase {
         $desclvl = $condlvl->get_description(true, false, $info);
         $this->assertStringContainsString('5', $desclvl);
 
-        // Test Item Description (Exactly 2 Magic Keys).
+        // Test Item Description — one assertion per operator to cover all switch branches.
         $conditem = new condition((object)['subtype' => 'item', 'itemid' => $itemid, 'itemqty' => 2, 'itemop' => '=']);
         $descitem = $conditem->get_description(true, false, $info);
         $this->assertStringContainsString('2', $descitem);
         $this->assertStringContainsString('Magic Key', $descitem);
+
+        $condgt = new condition((object)['subtype' => 'item', 'itemid' => $itemid, 'itemqty' => 1, 'itemop' => '>']);
+        $this->assertNotEmpty($condgt->get_description(true, false, $info));
+
+        $condlt = new condition((object)['subtype' => 'item', 'itemid' => $itemid, 'itemqty' => 5, 'itemop' => '<']);
+        $this->assertNotEmpty($condlt->get_description(true, false, $info));
+
+        $condgte = new condition((object)['subtype' => 'item', 'itemid' => $itemid, 'itemqty' => 1, 'itemop' => '>=']);
+        $this->assertNotEmpty($condgte->get_description(true, false, $info));
 
         // Test Class Description.
         $classid = $this->create_and_assign_class($user->id);
         $condclass = new condition((object)['subtype' => 'class', 'classid' => $classid]);
         $descclass = $condclass->get_description(true, false, $info);
         $this->assertStringContainsString('Warrior', $descclass);
+    }
+
+    /**
+     * Test that save() serialises all fields correctly regardless of subtype.
+     */
+    public function test_save(): void {
+        $cond = new condition((object)[
+            'subtype' => 'item',
+            'itemid' => 7,
+            'itemqty' => 3,
+            'itemop' => '>',
+        ]);
+        $saved = $cond->save();
+        $this->assertSame('item', $saved->subtype);
+        $this->assertSame(7, (int)$saved->itemid);
+        $this->assertSame(3, (int)$saved->itemqty);
+        $this->assertSame('>', $saved->itemop);
+        $this->assertSame(0, (int)$saved->levelval);
+        $this->assertSame(0, (int)$saved->classid);
+    }
+
+    /**
+     * Test that get_debug_string() returns a non-empty string.
+     */
+    public function test_get_debug_string(): void {
+        $cond = new condition((object)['subtype' => 'level', 'levelval' => 1]);
+        $this->assertNotEmpty($cond->get_debug_string());
+    }
+
+    /**
+     * Test restriction based on gamification status.
+     */
+    public function test_is_available_gamification(): void {
+        global $DB;
+
+        $cond = new condition((object)['subtype' => 'gamification']);
+
+        // User with gamification enabled.
+        $user = $this->create_player_with_xp(0);
+        $info = new \core_availability\mock_info($this->course, $user->id);
+        $this->assertTrue($cond->is_available(false, $info, true, $user->id));
+
+        // User with gamification explicitly disabled.
+        $userdis = $this->getDataGenerator()->create_user();
+        $playerdis = new \stdClass();
+        $playerdis->blockinstanceid = $this->instanceid;
+        $playerdis->userid = $userdis->id;
+        $playerdis->currentxp = 0;
+        $playerdis->enable_gamification = 0;
+        $playerdis->ranking_visibility = 1;
+        $playerdis->timecreated = time();
+        $playerdis->timemodified = time();
+        $DB->insert_record('block_playerhud_user', $playerdis);
+        $infodis = new \core_availability\mock_info($this->course, $userdis->id);
+        $this->assertFalse($cond->is_available(false, $infodis, true, $userdis->id));
+
+        // User without any player record.
+        $usernew = $this->getDataGenerator()->create_user();
+        $infonew = new \core_availability\mock_info($this->course, $usernew->id);
+        $this->assertFalse($cond->is_available(false, $infonew, true, $usernew->id));
+    }
+
+    /**
+     * Test that level check works when the block configdata is missing or corrupt.
+     *
+     * Exercises the fallback at condition.php L98 where unserialize returns false
+     * and the code falls back to a bare stdClass so get_game_stats still runs.
+     */
+    public function test_is_available_level_invalid_configdata(): void {
+        global $DB;
+
+        // Create an isolated course with a block that has empty configdata.
+        $course2 = $this->getDataGenerator()->create_course();
+        $ctx2 = \context_course::instance($course2->id);
+
+        $bi = new \stdClass();
+        $bi->blockname = 'playerhud';
+        $bi->parentcontextid = $ctx2->id;
+        $bi->showinsubcontexts = 0;
+        $bi->pagetypepattern = 'course-view-*';
+        $bi->defaultregion = 'side-pre';
+        $bi->defaultweight = 0;
+        $bi->configdata = '';
+        $bi->timecreated = time();
+        $bi->timemodified = time();
+        $instanceid2 = $DB->insert_record('block_instances', $bi);
+
+        $user = $this->getDataGenerator()->create_user();
+        $player = new \stdClass();
+        $player->blockinstanceid = $instanceid2;
+        $player->userid = $user->id;
+        $player->currentxp = 500;
+        $player->enable_gamification = 1;
+        $player->ranking_visibility = 1;
+        $player->timecreated = time();
+        $player->timemodified = time();
+        $DB->insert_record('block_playerhud_user', $player);
+
+        $info = new \core_availability\mock_info($course2, $user->id);
+        $cond = new condition((object)['subtype' => 'level', 'levelval' => 1]);
+
+        // Should not throw even with empty configdata; result is a boolean.
+        $this->assertIsBool($cond->is_available(false, $info, true, $user->id));
+    }
+
+    /**
+     * Test that an unknown subtype in is_available falls through to false.
+     */
+    public function test_is_available_unknown_subtype(): void {
+        $user = $this->create_player_with_xp(100);
+        $info = new \core_availability\mock_info($this->course, $user->id);
+
+        $cond = new condition((object)['subtype' => 'unknown_subtype']);
+        $this->assertFalse($cond->is_available(false, $info, true, $user->id));
+    }
+
+    /**
+     * Test get_description for gamification and unknown/missing subtypes.
+     */
+    public function test_get_description_other_subtypes(): void {
+        $user = $this->create_player_with_xp(0);
+        $info = new \core_availability\mock_info($this->course, $user->id);
+
+        // Gamification subtype returns a non-empty string.
+        $condgam = new condition((object)['subtype' => 'gamification']);
+        $this->assertNotEmpty($condgam->get_description(true, false, $info));
+
+        // Missing subtype returns an empty string.
+        $condnone = new condition((object)[]);
+        $this->assertSame('', $condnone->get_description(true, false, $info));
+
+        // Unknown subtype falls through to an empty string.
+        $condunk = new condition((object)['subtype' => 'unknown']);
+        $this->assertSame('', $condunk->get_description(true, false, $info));
     }
 }

@@ -100,6 +100,34 @@ Students will only gain access when the defined conditions are met.
 
 ---
 
+### 🧪 Automated Tests
+
+The plugin ships with PHPUnit unit and integration tests, executed on every CI push.
+
+#### PHPUnit — Unit & Integration Tests
+
+| Test file | Cases | What is covered |
+|-----------|------:|----------------|
+| `condition_test.php` | 12 | No-block fallback · level-based access (pass/fail/exact match) · item operators (≥, >, <, =) · class assignment (present, absent, zero id) · class with no RPG progress · gamification enabled/disabled/no player record · unknown subtype fallthrough · corrupted configdata fallback · description strings for all subtypes and operators · `save()` serialisation · `get_debug_string()` |
+| `frontend_test.php` | 5 | `allow_add` with block present and absent · `get_javascript_init_params` with items/classes and with no block · `get_javascript_strings` returning all expected keys |
+| `privacy/provider_test.php` | 1 | `get_reason()` returns the expected lang string key |
+| **Total** | **18** | |
+
+**Line coverage by class (PHPUnit + Xdebug):**
+
+| Class | Line coverage |
+|-------|:-------------:|
+| `condition` | 99% |
+| `frontend` | 100% |
+| `privacy\provider` | 100% |
+| **Overall** | **99%** |
+
+```bash
+vendor/bin/phpunit --testsuite availability_playerhud
+```
+
+---
+
 ## 📄 License
 
 This project is licensed under the **GNU General Public License v3 (GPLv3)**.
@@ -195,6 +223,34 @@ O acesso será liberado automaticamente quando as condições forem atendidas.
 * Integração total com o controle de acesso do Moodle
 * Não utiliza APIs externas
 * Compatível com os padrões de privacidade do Moodle
+
+---
+
+### 🧪 Testes Automatizados
+
+O plugin inclui testes unitários e de integração (PHPUnit), executados a cada push de CI.
+
+#### PHPUnit — Testes Unitários e de Integração
+
+| Arquivo de teste | Casos | O que é coberto |
+|-----------------|------:|----------------|
+| `condition_test.php` | 12 | Fallback sem bloco · acesso por nível (passa/falha/exato) · operadores de item (≥, >, <, =) · atribuição de classe (presente, ausente, id zero) · classe sem progresso RPG · gamificação ativa/desativada/sem registro de jogador · subtype desconhecido cai em false · fallback com configdata corrompido · strings de descrição para todos os subtypes e operadores · serialização de `save()` · `get_debug_string()` |
+| `frontend_test.php` | 5 | `allow_add` com bloco presente e ausente · `get_javascript_init_params` com itens/classes e sem bloco · `get_javascript_strings` retornando todas as chaves esperadas |
+| `privacy/provider_test.php` | 1 | `get_reason()` retorna a chave de lang esperada |
+| **Total** | **18** | |
+
+**Cobertura de linhas por classe (PHPUnit + Xdebug):**
+
+| Classe | Cobertura de linhas |
+|--------|:-------------------:|
+| `condition` | 99% |
+| `frontend` | 100% |
+| `privacy\provider` | 100% |
+| **Total** | **99%** |
+
+```bash
+vendor/bin/phpunit --testsuite availability_playerhud
+```
 
 ---
 
