@@ -42,7 +42,7 @@ class frontend extends \core_availability\frontend {
      * @param \section_info|null $section Section currently being edited.
      * @return bool True if the restriction can be added.
      */
-    protected function allow_add($course, \cm_info $cm = null, \section_info $section = null) {
+    protected function allow_add($course, ?\cm_info $cm = null, ?\section_info $section = null) {
         global $DB;
 
         $context = \context_course::instance($course->id);
@@ -62,7 +62,7 @@ class frontend extends \core_availability\frontend {
      * @param \section_info|null $section Section info.
      * @return array Parameters passed to JS initInner.
      */
-    protected function get_javascript_init_params($course, \cm_info $cm = null, \section_info $section = null) {
+    protected function get_javascript_init_params($course, ?\cm_info $cm = null, ?\section_info $section = null) {
         global $DB;
 
         $context = \context_course::instance($course->id);
