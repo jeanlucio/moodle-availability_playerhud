@@ -24,13 +24,13 @@ Feature: PlayerHUD restriction type is only offered when the block exists in the
     Given a PlayerHUD block exists in course "C1" with 100 XP per level
     And I log in as "teacher1"
     And I am on the "Test Page" "page activity editing" page
-    And I expand "Restrict access" fieldset
+    And I expand all fieldsets
     When I click on "Add restriction..." "button"
     Then I should see "PlayerHUD"
 
   Scenario: The PlayerHUD restriction option is absent when the block is not in the course
     Given I log in as "teacher1"
     And I am on the "Test Page" "page activity editing" page
-    And I expand "Restrict access" fieldset
+    And I expand all fieldsets
     When I click on "Add restriction..." "button"
     Then I should not see "PlayerHUD"
