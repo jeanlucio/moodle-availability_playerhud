@@ -29,9 +29,10 @@ jobs:
               open('/tmp/release-notes.md', 'w').write(f'Release {tag}.')
               sys.exit(0)
 
-          # Match ## [v1.5.2] — date  …  up to the next ## [ or end of file
+          # Match "## v1.5.2 (yyyymmddxx)" (this plugin's actual CHANGES.md heading
+          # style, no brackets) … up to the next "## " heading or end of file.
           escaped = re.escape(tag)
-          pattern = rf'^## \[{escaped}\][^\n]*\n(.*?)(?=\n^## \[|\Z)'
+          pattern = rf'^## {escaped}[^\n]*\n(.*?)(?=\n^## |\Z)'
           match = re.search(pattern, content, re.DOTALL | re.MULTILINE)
 
           if match:
