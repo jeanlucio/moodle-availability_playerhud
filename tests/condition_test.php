@@ -610,6 +610,146 @@ final class condition_test extends advanced_testcase {
     }
 
     /**
+     * Regression test for the negation ($not) bug: every subtype must return the opposite
+     * result when $not is true, mirroring the corresponding $not=false case. The core
+     * availability API expects the leaf condition itself to apply the negation
+     * (\core_availability\condition::check_available() returns is_available($not, ...)
+     * verbatim) — this is what a "Student must not match the following" restriction relies
+     * on, and it was never implemented for any subtype.
+     */
+    public function test_is_available_honours_not_flag_for_level(): void {
+        // User with 250 XP (Level 3 if xp_per_level is 100).
+        $user = $this->create_player_with_xp(250);
+        $info = new \core_availability\mock_info($this->course, $user->id);
+
+        // Requires Level 2: the user satisfies it, so negated must block.
+        $condmet = new condition((object)['subtype' => 'level', 'levelval' => 2]);
+        $this->assertTrue($condmet->is_available(false, $info, true, $user->id));
+        $this->assertFalse($condmet->is_available(true, $info, true, $user->id));
+
+        // Requires Level 4: the user does not satisfy it, so negated must allow.
+        $condunmet = new condition((object)['subtype' => 'level', 'levelval' => 4]);
+        $this->assertFalse($condunmet->is_available(false, $info, true, $user->id));
+        $this->assertTrue($condunmet->is_available(true, $info, true, $user->id));
+    }
+
+    /**
+     * Regression test for the negation ($not) bug, covering all four item operators.
+     */
+    public function test_is_available_honours_not_flag_for_item(): void {
+        $user = $this->create_player_with_xp(0);
+        $info = new \core_availability\mock_info($this->course, $user->id);
+        $itemid = $this->create_and_give_item($user->id, 3);
+
+        $cases = [
+            ['itemqty' => 3, 'itemop' => '>=', 'metpositive' => true],
+            ['itemqty' => 4, 'itemop' => '>=', 'metpositive' => false],
+            ['itemqty' => 2, 'itemop' => '>', 'metpositive' => true],
+            ['itemqty' => 3, 'itemop' => '>', 'metpositive' => false],
+            ['itemqty' => 4, 'itemop' => '<', 'metpositive' => true],
+            ['itemqty' => 3, 'itemop' => '<', 'metpositive' => false],
+            ['itemqty' => 3, 'itemop' => '=', 'metpositive' => true],
+            ['itemqty' => 2, 'itemop' => '=', 'metpositive' => false],
+        ];
+
+        foreach ($cases as $case) {
+            $cond = new condition((object)[
+                'subtype' => 'item',
+                'itemid' => $itemid,
+                'itemqty' => $case['itemqty'],
+                'itemop' => $case['itemop'],
+            ]);
+            $this->assertSame($case['metpositive'], $cond->is_available(false, $info, true, $user->id));
+            $this->assertSame(!$case['metpositive'], $cond->is_available(true, $info, true, $user->id));
+        }
+    }
+
+    /**
+     * Regression test for the negation ($not) bug, covering RPG class assignment.
+     */
+    public function test_is_available_honours_not_flag_for_class(): void {
+        $user = $this->create_player_with_xp(0);
+        $info = new \core_availability\mock_info($this->course, $user->id);
+        $classid = $this->create_and_assign_class($user->id);
+
+        // User has the class: negated must block.
+        $condhas = new condition((object)['subtype' => 'class', 'classid' => $classid]);
+        $this->assertTrue($condhas->is_available(false, $info, true, $user->id));
+        $this->assertFalse($condhas->is_available(true, $info, true, $user->id));
+
+        // User does not have this (different) class: negated must allow.
+        $condhasnot = new condition((object)['subtype' => 'class', 'classid' => $classid + 9999]);
+        $this->assertFalse($condhasnot->is_available(false, $info, true, $user->id));
+        $this->assertTrue($condhasnot->is_available(true, $info, true, $user->id));
+    }
+
+    /**
+     * Regression test for the negation ($not) bug, covering gamification status.
+     */
+    public function test_is_available_honours_not_flag_for_gamification(): void {
+        global $DB;
+
+        $cond = new condition((object)['subtype' => 'gamification']);
+
+        // User with gamification enabled: negated must block.
+        $user = $this->create_player_with_xp(0);
+        $info = new \core_availability\mock_info($this->course, $user->id);
+        $this->assertTrue($cond->is_available(false, $info, true, $user->id));
+        $this->assertFalse($cond->is_available(true, $info, true, $user->id));
+
+        // User with gamification disabled: negated must allow.
+        $userdis = $this->getDataGenerator()->create_user();
+        $playerdis = new \stdClass();
+        $playerdis->blockinstanceid = $this->instanceid;
+        $playerdis->userid = $userdis->id;
+        $playerdis->currentxp = 0;
+        $playerdis->enable_gamification = 0;
+        $playerdis->ranking_visibility = 1;
+        $playerdis->timecreated = time();
+        $playerdis->timemodified = time();
+        $DB->insert_record('block_playerhud_user', $playerdis);
+        $infodis = new \core_availability\mock_info($this->course, $userdis->id);
+        $this->assertFalse($cond->is_available(false, $infodis, true, $userdis->id));
+        $this->assertTrue($cond->is_available(true, $infodis, true, $userdis->id));
+    }
+
+    /**
+     * Regression test for the negation ($not) bug in get_description(): the rendered text
+     * must differ between the affirmative and negated phrasing, for every subtype. This does
+     * not lock in exact wording (not yet decided), only that $not is not silently ignored.
+     */
+    public function test_get_description_differs_when_negated(): void {
+        $user = $this->create_player_with_xp(0);
+        $info = new \core_availability\mock_info($this->course, $user->id);
+        $itemid = $this->create_and_give_item($user->id, 0);
+        $classid = $this->create_and_assign_class($user->id);
+
+        $condlevel = new condition((object)['subtype' => 'level', 'levelval' => 5]);
+        $this->assertNotSame(
+            $condlevel->get_description(true, false, $info),
+            $condlevel->get_description(true, true, $info)
+        );
+
+        $conditem = new condition((object)['subtype' => 'item', 'itemid' => $itemid, 'itemqty' => 2, 'itemop' => '=']);
+        $this->assertNotSame(
+            $conditem->get_description(true, false, $info),
+            $conditem->get_description(true, true, $info)
+        );
+
+        $condclass = new condition((object)['subtype' => 'class', 'classid' => $classid]);
+        $this->assertNotSame(
+            $condclass->get_description(true, false, $info),
+            $condclass->get_description(true, true, $info)
+        );
+
+        $condgam = new condition((object)['subtype' => 'gamification']);
+        $this->assertNotSame(
+            $condgam->get_description(true, false, $info),
+            $condgam->get_description(true, true, $info)
+        );
+    }
+
+    /**
      * Helper to create a PlayerHUD block instance in a given course.
      *
      * @param \stdClass $course Course object.

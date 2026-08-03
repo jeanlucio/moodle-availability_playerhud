@@ -90,88 +90,86 @@ class condition extends \core_availability\condition {
         global $DB;
 
         $block = $this->get_block_instance($info->get_course()->id);
+        $allow = false;
 
-        if (!$block) {
-            return false;
-        }
-
-        $player = $DB->get_record('block_playerhud_user', [
-            'blockinstanceid' => $block->id,
-            'userid' => $userid,
-        ]);
-
-        $currentxp = $player ? $player->currentxp : 0;
-
-        // Level Logic (Greater than or Equal).
-        if (isset($this->config->subtype) && $this->config->subtype === 'level') {
-            // Unserialize_object() restricts allowed_classes, unlike a bare unserialize(),
-            // preventing instantiation of arbitrary objects from a tampered configdata.
-            $blockconfig = unserialize_object(base64_decode($block->configdata));
-
-            if (class_exists('\block_playerhud\game')) {
-                $stats = \block_playerhud\game::get_game_stats($blockconfig, $block->id, $currentxp);
-                return ($stats['level'] >= (int)$this->config->levelval);
-            }
-            return false;
-        }
-
-        // Item Logic with Operators.
-        if (isset($this->config->subtype) && $this->config->subtype === 'item') {
-            $sql = "SELECT COUNT(inv.id)
-                      FROM {block_playerhud_inventory} inv
-                      JOIN {block_playerhud_items} i ON i.id = inv.itemid
-                     WHERE inv.userid        = :userid
-                       AND inv.itemid        = :itemid
-                       AND i.blockinstanceid = :blockinstanceid";
-
-            $count = $DB->count_records_sql($sql, [
-                'userid'          => $userid,
-                'itemid'          => (int)$this->config->itemid,
+        if ($block) {
+            $player = $DB->get_record('block_playerhud_user', [
                 'blockinstanceid' => $block->id,
+                'userid' => $userid,
             ]);
 
-            $qty = (int)$this->config->itemqty;
-            $op = $this->config->itemop ?? '>=';
+            $currentxp = $player ? $player->currentxp : 0;
 
-            switch ($op) {
-                case '>':
-                    return ($count > $qty);
-                case '<':
-                    return ($count < $qty);
-                case '=':
-                    return ($count == $qty);
-                default:
-                    return ($count >= $qty);
+            // Level Logic (Greater than or Equal).
+            if (isset($this->config->subtype) && $this->config->subtype === 'level') {
+                // Unserialize_object() restricts allowed_classes, unlike a bare unserialize(),
+                // preventing instantiation of arbitrary objects from a tampered configdata.
+                $blockconfig = unserialize_object(base64_decode($block->configdata));
+
+                if (class_exists('\block_playerhud\game')) {
+                    $stats = \block_playerhud\game::get_game_stats($blockconfig, $block->id, $currentxp);
+                    $allow = ($stats['level'] >= (int)$this->config->levelval);
+                }
+            } else if (isset($this->config->subtype) && $this->config->subtype === 'item') {
+                // Item Logic with Operators.
+                $sql = "SELECT COUNT(inv.id)
+                          FROM {block_playerhud_inventory} inv
+                          JOIN {block_playerhud_items} i ON i.id = inv.itemid
+                         WHERE inv.userid        = :userid
+                           AND inv.itemid        = :itemid
+                           AND i.blockinstanceid = :blockinstanceid";
+
+                $count = $DB->count_records_sql($sql, [
+                    'userid'          => $userid,
+                    'itemid'          => (int)$this->config->itemid,
+                    'blockinstanceid' => $block->id,
+                ]);
+
+                $qty = (int)$this->config->itemqty;
+                $op = $this->config->itemop ?? '>=';
+
+                switch ($op) {
+                    case '>':
+                        $allow = ($count > $qty);
+                        break;
+                    case '<':
+                        $allow = ($count < $qty);
+                        break;
+                    case '=':
+                        $allow = ($count == $qty);
+                        break;
+                    default:
+                        $allow = ($count >= $qty);
+                        break;
+                }
+            } else if (isset($this->config->subtype) && $this->config->subtype === 'gamification') {
+                // Gamification Logic: user must have gamification enabled.
+                $allow = ($player && $player->enable_gamification == 1);
+            } else if (isset($this->config->subtype) && $this->config->subtype === 'class') {
+                // Class Logic: user must have the RPG class assigned.
+                $classid = (int)($this->config->classid ?? 0);
+
+                if ($classid > 0) {
+                    $sql = "SELECT rp.id
+                              FROM {block_playerhud_rpg_progress} rp
+                              JOIN {block_playerhud_classes} c ON c.id = rp.classid
+                             WHERE rp.userid        = :userid
+                               AND rp.classid       = :classid
+                               AND c.blockinstanceid = :blockinstanceid";
+
+                    $allow = $DB->record_exists_sql($sql, [
+                        'userid'          => $userid,
+                        'classid'         => $classid,
+                        'blockinstanceid' => $block->id,
+                    ]);
+                }
             }
         }
 
-        // Gamification Logic: user must have gamification enabled.
-        if (isset($this->config->subtype) && $this->config->subtype === 'gamification') {
-            return ($player && $player->enable_gamification == 1);
+        if ($not) {
+            $allow = !$allow;
         }
-
-        // Class Logic: user must have the RPG class assigned.
-        if (isset($this->config->subtype) && $this->config->subtype === 'class') {
-            $classid = (int)($this->config->classid ?? 0);
-            if ($classid <= 0) {
-                return false;
-            }
-
-            $sql = "SELECT rp.id
-                      FROM {block_playerhud_rpg_progress} rp
-                      JOIN {block_playerhud_classes} c ON c.id = rp.classid
-                     WHERE rp.userid        = :userid
-                       AND rp.classid       = :classid
-                       AND c.blockinstanceid = :blockinstanceid";
-
-            return $DB->record_exists_sql($sql, [
-                'userid'          => $userid,
-                'classid'         => $classid,
-                'blockinstanceid' => $block->id,
-            ]);
-        }
-
-        return false;
+        return $allow;
     }
 
     /**
@@ -190,7 +188,8 @@ class condition extends \core_availability\condition {
         }
 
         if ($this->config->subtype === 'level') {
-            return get_string('requires_level', 'availability_playerhud', (int)$this->config->levelval);
+            $string = $not ? 'requires_not_level' : 'requires_level';
+            return get_string($string, 'availability_playerhud', (int)$this->config->levelval);
         }
 
         $context = $info->get_context();
@@ -230,11 +229,13 @@ class condition extends \core_availability\condition {
             $a->item = format_string($itemname, true, ['context' => $context]);
             $a->op = $optext;
 
-            return get_string('requires_item', 'availability_playerhud', $a);
+            $string = $not ? 'requires_not_item' : 'requires_item';
+            return get_string($string, 'availability_playerhud', $a);
         }
 
         if ($this->config->subtype === 'gamification') {
-            return get_string('requires_gamification_active', 'availability_playerhud');
+            $string = $not ? 'requires_not_gamification_active' : 'requires_gamification_active';
+            return get_string($string, 'availability_playerhud');
         }
 
         if ($this->config->subtype === 'class') {
@@ -247,7 +248,8 @@ class condition extends \core_availability\condition {
                 ) ?: $classname;
             }
 
-            return get_string('requires_class', 'availability_playerhud', format_string($classname, true, ['context' => $context]));
+            $string = $not ? 'requires_not_class' : 'requires_class';
+            return get_string($string, 'availability_playerhud', format_string($classname, true, ['context' => $context]));
         }
 
         return '';
@@ -259,5 +261,52 @@ class condition extends \core_availability\condition {
      */
     public function get_debug_string() {
         return 'PlayerHUD Restriction';
+    }
+
+    /**
+     * Remaps itemid/classid to the restored course's own PlayerHUD item/class after a
+     * course backup and restore, mirroring the pattern used by availability_grade for
+     * grade_item. Without this, the ids keep pointing at the source course's rows.
+     *
+     * @param string $restoreid Restore ID.
+     * @param int $courseid ID of target course.
+     * @param \base_logger $logger Logger for any warnings.
+     * @param string $name Name of this item (for use in warning messages).
+     * @return bool True if there was any change.
+     */
+    public function update_after_restore($restoreid, $courseid, \base_logger $logger, $name): bool {
+        $changed = false;
+
+        if (!empty($this->config->itemid)) {
+            $rec = \restore_dbops::get_backup_ids_record($restoreid, 'playerhud_item', $this->config->itemid);
+            if ($rec && $rec->newitemid) {
+                $this->config->itemid = (int)$rec->newitemid;
+            } else {
+                $this->config->itemid = 0;
+                $logger->process(
+                    'Restored item (' . $name . ') has an availability condition on a PlayerHUD item ' .
+                        'that was not restored',
+                    \backup::LOG_WARNING
+                );
+            }
+            $changed = true;
+        }
+
+        if (!empty($this->config->classid)) {
+            $rec = \restore_dbops::get_backup_ids_record($restoreid, 'playerhud_class', $this->config->classid);
+            if ($rec && $rec->newitemid) {
+                $this->config->classid = (int)$rec->newitemid;
+            } else {
+                $this->config->classid = 0;
+                $logger->process(
+                    'Restored item (' . $name . ') has an availability condition on a PlayerHUD ' .
+                        'character class that was not restored',
+                    \backup::LOG_WARNING
+                );
+            }
+            $changed = true;
+        }
+
+        return $changed;
     }
 }
