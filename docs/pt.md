@@ -10,6 +10,7 @@ lang: pt
 ![Status](https://img.shields.io/badge/Status-Stable-green?style=flat-square)
 [![PlayerGames Ecosystem](https://img.shields.io/badge/PlayerGames-Ecosystem-6f42c1?style=flat-square&logo=gamepad&logoColor=white)](https://jeanlucio.github.io/playergames/)
 ![Role](https://img.shields.io/badge/Role-Access_Control-d63384?style=flat-square)
+[![MDL Shield](https://img.shields.io/endpoint?url=https%3A%2F%2Fmdlshield.com%2Fapi%2Fbadge%2Favailability_playerhud)](https://mdlshield.com/plugins/availability_playerhud)
 
 A **Restrição de Acesso do PlayerHUD** é uma extensão complementar obrigatória do
 [Bloco PlayerHUD](https://github.com/jeanlucio/moodle-block_playerhud). Ela permite ao professor
