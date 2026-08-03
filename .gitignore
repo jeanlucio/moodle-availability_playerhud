@@ -10,3 +10,6 @@ Thumbs.db
 # IDEs
 .vscode/
 .idea/
+
+# AI assistant session/workspace directories, not part of the plugin.
+.plans

@@ -22,6 +22,7 @@ defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 require_once($CFG->dirroot . '/availability/tests/fixtures/mock_info.php');
+require_once(__DIR__ . '/fixtures/condition_test_gadget.php');
 
 /**
  * Tests for the PlayerHUD availability condition.
@@ -459,5 +460,177 @@ final class condition_test extends advanced_testcase {
         // Unknown subtype falls through to an empty string.
         $condunk = new condition((object)['subtype' => 'unknown']);
         $this->assertSame('', $condunk->get_description(true, false, $info));
+    }
+
+    /**
+     * Regression test for a stored-XSS fix: levelval must be cast to int before being
+     * used, both when persisted (save()) and when rendered (get_description()), so a
+     * forged availabilityconditionsjson payload cannot inject HTML/JS.
+     */
+    public function test_save_and_description_cast_levelval_to_int(): void {
+        $payload = '999<img src=x onerror=alert(1)>';
+        $cond = new condition((object)['subtype' => 'level', 'levelval' => $payload]);
+
+        $saved = $cond->save();
+        $this->assertSame(999, $saved->levelval);
+
+        $user = $this->create_player_with_xp(0);
+        $info = new \core_availability\mock_info($this->course, $user->id);
+        $desc = $cond->get_description(true, false, $info);
+        $this->assertStringNotContainsString('<img', $desc);
+        $this->assertStringContainsString('999', $desc);
+    }
+
+    /**
+     * Regression test for a stored-XSS fix: itemqty must be cast to int before being
+     * used, both when persisted (save()) and when rendered (get_description()).
+     */
+    public function test_save_and_description_cast_itemqty_to_int(): void {
+        $user = $this->create_player_with_xp(0);
+        $info = new \core_availability\mock_info($this->course, $user->id);
+        $itemid = $this->create_and_give_item($user->id, 0);
+
+        $payload = '5<img src=x onerror=alert(1)>';
+        $cond = new condition((object)['subtype' => 'item', 'itemid' => $itemid, 'itemqty' => $payload, 'itemop' => '>=']);
+
+        $saved = $cond->save();
+        $this->assertSame(5, $saved->itemqty);
+
+        $desc = $cond->get_description(true, false, $info);
+        $this->assertStringNotContainsString('<img', $desc);
+        $this->assertStringContainsString('5', $desc);
+    }
+
+    /**
+     * Regression test: tampered block configdata containing a serialized object of an
+     * arbitrary class must not be instantiated. Proves unserialize_object() (which
+     * restricts allowed_classes) is used instead of a bare unserialize().
+     */
+    public function test_is_available_level_blocks_object_injection_in_configdata(): void {
+        global $DB;
+
+        condition_test_gadget::$triggered = false;
+
+        $gadget = new condition_test_gadget();
+        $DB->set_field('block_instances', 'configdata', base64_encode(serialize($gadget)), ['id' => $this->instanceid]);
+
+        $user = $this->create_player_with_xp(250);
+        $info = new \core_availability\mock_info($this->course, $user->id);
+        $cond = new condition((object)['subtype' => 'level', 'levelval' => 1]);
+
+        $this->assertIsBool($cond->is_available(false, $info, true, $user->id));
+        $this->assertFalse(condition_test_gadget::$triggered, 'Arbitrary object must not be instantiated from configdata');
+    }
+
+    /**
+     * Regression test: get_description() must resolve item names only from the item
+     * catalog of the course's own PlayerHUD block instance, never from another block.
+     */
+    public function test_get_description_item_scoped_to_course_block(): void {
+        global $DB;
+
+        $othercourse = $this->getDataGenerator()->create_course();
+        $otherinstanceid = $this->create_playerhud_block($othercourse);
+
+        $otheritem = new \stdClass();
+        $otheritem->blockinstanceid = $otherinstanceid;
+        $otheritem->name = 'Secret Blade From Other Course';
+        $otheritem->xp = 0;
+        $otheritem->timecreated = time();
+        $otheritem->timemodified = time();
+        $otheritemid = $DB->insert_record('block_playerhud_items', $otheritem);
+
+        $user = $this->create_player_with_xp(0);
+        $info = new \core_availability\mock_info($this->course, $user->id);
+        $cond = new condition((object)['subtype' => 'item', 'itemid' => $otheritemid, 'itemqty' => 1, 'itemop' => '>=']);
+
+        $desc = $cond->get_description(true, false, $info);
+        $this->assertStringNotContainsString('Secret Blade From Other Course', $desc);
+    }
+
+    /**
+     * Regression test: get_description() must resolve RPG class names only from the
+     * class catalog of the course's own PlayerHUD block instance, never from another.
+     */
+    public function test_get_description_class_scoped_to_course_block(): void {
+        global $DB;
+
+        $othercourse = $this->getDataGenerator()->create_course();
+        $otherinstanceid = $this->create_playerhud_block($othercourse);
+
+        $otherclass = new \stdClass();
+        $otherclass->blockinstanceid = $otherinstanceid;
+        $otherclass->name = 'Secret Class From Other Course';
+        $otherclass->base_hp = 100;
+        $otherclass->timecreated = time();
+        $otherclass->timemodified = time();
+        $otherclassid = $DB->insert_record('block_playerhud_classes', $otherclass);
+
+        $user = $this->create_player_with_xp(0);
+        $info = new \core_availability\mock_info($this->course, $user->id);
+        $cond = new condition((object)['subtype' => 'class', 'classid' => $otherclassid]);
+
+        $desc = $cond->get_description(true, false, $info);
+        $this->assertStringNotContainsString('Secret Class From Other Course', $desc);
+    }
+
+    /**
+     * Regression test: is_available() must count inventory only for items belonging to
+     * the course's own PlayerHUD block instance. A user owning an item granted through a
+     * different course's block must not satisfy a condition forged to point at it.
+     */
+    public function test_is_available_item_scoped_to_course_block(): void {
+        global $DB;
+
+        $othercourse = $this->getDataGenerator()->create_course();
+        $otherinstanceid = $this->create_playerhud_block($othercourse);
+
+        $user = $this->create_player_with_xp(0);
+
+        $otheritem = new \stdClass();
+        $otheritem->blockinstanceid = $otherinstanceid;
+        $otheritem->name = 'Other Course Item';
+        $otheritem->xp = 0;
+        $otheritem->timecreated = time();
+        $otheritem->timemodified = time();
+        $otheritemid = $DB->insert_record('block_playerhud_items', $otheritem);
+
+        $DB->insert_record('block_playerhud_inventory', (object)[
+            'userid' => $user->id,
+            'itemid' => $otheritemid,
+            'dropid' => 0,
+            'source' => 'test',
+            'timecreated' => time(),
+        ]);
+
+        $info = new \core_availability\mock_info($this->course, $user->id);
+        $cond = new condition((object)['subtype' => 'item', 'itemid' => $otheritemid, 'itemqty' => 1, 'itemop' => '>=']);
+
+        $this->assertFalse($cond->is_available(false, $info, true, $user->id));
+    }
+
+    /**
+     * Helper to create a PlayerHUD block instance in a given course.
+     *
+     * @param \stdClass $course Course object.
+     * @return int The new block instance ID.
+     */
+    protected function create_playerhud_block(\stdClass $course): int {
+        global $DB;
+
+        $ctx = \context_course::instance($course->id);
+
+        $bi = new \stdClass();
+        $bi->blockname = 'playerhud';
+        $bi->parentcontextid = $ctx->id;
+        $bi->showinsubcontexts = 0;
+        $bi->pagetypepattern = 'course-view-*';
+        $bi->defaultregion = 'side-pre';
+        $bi->defaultweight = 0;
+        $bi->configdata = base64_encode(serialize(new \stdClass()));
+        $bi->timecreated = time();
+        $bi->timemodified = time();
+
+        return $DB->insert_record('block_instances', $bi);
     }
 }

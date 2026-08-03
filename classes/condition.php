@@ -50,12 +50,31 @@ class condition extends \core_availability\condition {
     public function save() {
         return (object)[
             'subtype' => $this->config->subtype,
-            'levelval' => $this->config->levelval ?? 0,
-            'itemid' => $this->config->itemid ?? 0,
-            'itemqty' => $this->config->itemqty ?? 1,
+            'levelval' => (int)($this->config->levelval ?? 0),
+            'itemid' => (int)($this->config->itemid ?? 0),
+            'itemqty' => (int)($this->config->itemqty ?? 1),
             'itemop' => $this->config->itemop ?? '>=',
-            'classid' => $this->config->classid ?? 0,
+            'classid' => (int)($this->config->classid ?? 0),
         ];
+    }
+
+    /**
+     * Fetches the PlayerHUD block instance attached to a course, if any.
+     *
+     * @param int $courseid Course ID.
+     * @return \stdClass|false Block instance record (id, configdata) or false if none exists.
+     */
+    private function get_block_instance(int $courseid) {
+        global $DB;
+
+        $context = \context_course::instance($courseid);
+
+        $sql = "SELECT bi.id, bi.configdata
+                  FROM {block_instances} bi
+                 WHERE bi.blockname = 'playerhud'
+                   AND bi.parentcontextid = :ctxid";
+
+        return $DB->get_record_sql($sql, ['ctxid' => $context->id], IGNORE_MULTIPLE);
     }
 
     /**
@@ -70,15 +89,7 @@ class condition extends \core_availability\condition {
     public function is_available($not, \core_availability\info $info, $grabthelot, $userid) {
         global $DB;
 
-        $courseid = $info->get_course()->id;
-        $context = \context_course::instance($courseid);
-
-        $sql = "SELECT bi.id, bi.configdata
-                  FROM {block_instances} bi
-                 WHERE bi.blockname = 'playerhud'
-                   AND bi.parentcontextid = :ctxid";
-
-        $block = $DB->get_record_sql($sql, ['ctxid' => $context->id], IGNORE_MULTIPLE);
+        $block = $this->get_block_instance($info->get_course()->id);
 
         if (!$block) {
             return false;
@@ -93,10 +104,9 @@ class condition extends \core_availability\condition {
 
         // Level Logic (Greater than or Equal).
         if (isset($this->config->subtype) && $this->config->subtype === 'level') {
-            $blockconfig = unserialize(base64_decode($block->configdata));
-            if (!$blockconfig) {
-                $blockconfig = new \stdClass();
-            }
+            // Unserialize_object() restricts allowed_classes, unlike a bare unserialize(),
+            // preventing instantiation of arbitrary objects from a tampered configdata.
+            $blockconfig = unserialize_object(base64_decode($block->configdata));
 
             if (class_exists('\block_playerhud\game')) {
                 $stats = \block_playerhud\game::get_game_stats($blockconfig, $block->id, $currentxp);
@@ -107,9 +117,17 @@ class condition extends \core_availability\condition {
 
         // Item Logic with Operators.
         if (isset($this->config->subtype) && $this->config->subtype === 'item') {
-            $count = $DB->count_records('block_playerhud_inventory', [
-                'userid' => $userid,
-                'itemid' => (int)$this->config->itemid,
+            $sql = "SELECT COUNT(inv.id)
+                      FROM {block_playerhud_inventory} inv
+                      JOIN {block_playerhud_items} i ON i.id = inv.itemid
+                     WHERE inv.userid        = :userid
+                       AND inv.itemid        = :itemid
+                       AND i.blockinstanceid = :blockinstanceid";
+
+            $count = $DB->count_records_sql($sql, [
+                'userid'          => $userid,
+                'itemid'          => (int)$this->config->itemid,
+                'blockinstanceid' => $block->id,
             ]);
 
             $qty = (int)$this->config->itemqty;
@@ -172,15 +190,19 @@ class condition extends \core_availability\condition {
         }
 
         if ($this->config->subtype === 'level') {
-            return get_string('requires_level', 'availability_playerhud', $this->config->levelval);
+            return get_string('requires_level', 'availability_playerhud', (int)$this->config->levelval);
         }
 
         $context = $info->get_context();
+        $block = $this->get_block_instance($info->get_course()->id);
 
         if ($this->config->subtype === 'item') {
             $itemname = get_string('missing', 'availability_playerhud');
-            if (!empty($this->config->itemid)) {
-                $itemname = $DB->get_field('block_playerhud_items', 'name', ['id' => $this->config->itemid]) ?: $itemname;
+            if (!empty($this->config->itemid) && $block) {
+                $itemname = $DB->get_field('block_playerhud_items', 'name', [
+                    'id' => (int)$this->config->itemid,
+                    'blockinstanceid' => $block->id,
+                ]) ?: $itemname;
             }
 
             $op = $this->config->itemop ?? '>=';
@@ -204,7 +226,7 @@ class condition extends \core_availability\condition {
             }
 
             $a = new \stdClass();
-            $a->qty = $this->config->itemqty;
+            $a->qty = (int)$this->config->itemqty;
             $a->item = format_string($itemname, true, ['context' => $context]);
             $a->op = $optext;
 
@@ -217,11 +239,11 @@ class condition extends \core_availability\condition {
 
         if ($this->config->subtype === 'class') {
             $classname = get_string('missing', 'availability_playerhud');
-            if (!empty($this->config->classid)) {
+            if (!empty($this->config->classid) && $block) {
                 $classname = $DB->get_field(
                     'block_playerhud_classes',
                     'name',
-                    ['id' => $this->config->classid]
+                    ['id' => (int)$this->config->classid, 'blockinstanceid' => $block->id]
                 ) ?: $classname;
             }
 
