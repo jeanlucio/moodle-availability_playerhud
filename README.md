@@ -1,69 +1,38 @@
-# Moodle PlayerHUD Restrição de Acesso
+# Moodle PlayerHUD Availability Restriction
 
 [![Moodle Plugin CI](https://github.com/jeanlucio/moodle-availability_playerhud/actions/workflows/ci.yml/badge.svg)](https://github.com/jeanlucio/moodle-availability_playerhud/actions/workflows/ci.yml)
 ![Moodle](https://img.shields.io/badge/Moodle-4.5%2B-orange?style=flat-square&logo=moodle&logoColor=white)
 ![License](https://img.shields.io/badge/License-GPLv3-blue?style=flat-square)
 ![Status](https://img.shields.io/badge/Status-Stable-green?style=flat-square)
-[![PlayerGames Ecosystem](https://img.shields.io/badge/PlayerGames-Ecosystem-6f42c1?style=flat-square&logo=gamepad&logoColor=white)](https://moodle.org/plugins/browse.php?list=contributor&id=3970322)
+[![PlayerGames Ecosystem](https://img.shields.io/badge/PlayerGames-Ecosystem-6f42c1?style=flat-square&logo=gamepad&logoColor=white)](https://jeanlucio.github.io/playergames/)
 ![Role](https://img.shields.io/badge/Role-Access_Control-d63384?style=flat-square)
 
 [English](#english) | [Português](#português)
 
+---
 
 ## English
 
-The **PlayerHUD Availability Condition** is an extension plugin for Moodle that allows teachers to restrict access to activities, resources, or course sections based on a student's progress in the PlayerHUD Block.
+The **PlayerHUD Availability Condition** is a required-companion extension for the
+[PlayerHUD Block](https://github.com/jeanlucio/moodle-block_playerhud). It lets teachers restrict
+access to activities, resources, or course sections based on a student's progress in PlayerHUD —
+Level, owned Items, Character class, or gamification status.
 
-It enables gamified progression rules by unlocking content only when students reach specific **Levels**, possess certain **Items**, belong to a **Character class**, or have **gamification active**.
-
----
-
-### ✨ Features
-
-* 🎯 Restrict access by minimum Level
-* 🎒 Restrict access based on collected Items
-* 🔢 Flexible comparison operators:
-  * Greater than (>)
-  * Less than (<)
-  * Exactly (=)
-  * Greater or equal (>=)
-* 🧙 Restrict access by Character class (RPG class assigned in PlayerHUD)
-* 🎮 Restrict access to students with **gamification enabled**
-* 🧠 Fully integrated with Moodle’s native Restrict Access system
-* ⚡ Real-time validation based on PlayerHUD data
-
----
-
-### 🕹️ Part of the PlayerGames Ecosystem
-
-This plugin is part of the **PlayerGames** gamification ecosystem. Together, these plugins transform Moodle into an immersive experience:
-
-* **PlayerHUD Block (Required)**
-  👉 https://github.com/jeanlucio/moodle-block_playerhud
-
-* **PlayerHUD Filter**
-  👉 https://github.com/jeanlucio/moodle-filter_playerhud
-
-* **PlayerGroup:** Lets students autonomously form their own groups directly from the activity page — no teacher intervention needed.
-  👉 https://github.com/jeanlucio/moodle-mod_playergroup
-
----
+📚 **[Full documentation](https://jeanlucio.github.io/moodle-availability_playerhud/)** — features,
+restriction type reference, the PlayerGames ecosystem, security details, and the full test suite
+breakdown.
 
 ### 📦 Requirements
 
-* **Moodle:** 4.5 or higher
-* **Required Dependency:** PlayerHUD Block
-  https://github.com/jeanlucio/moodle-block_playerhud
-* **PHP:** Compatible with your Moodle version
+| Component | Version |
+|-----------|---------|
+| Moodle    | 4.5+    |
+| Required dependency | [PlayerHUD Block](https://github.com/jeanlucio/moodle-block_playerhud) |
 
----
+### 🛠️ Installation & Configuration
 
-### 🛠️ Installation
-
-1. Ensure the **PlayerHUD Block** is installed first.
-   👉 https://github.com/jeanlucio/moodle-block_playerhud
-   This availability condition depends on the block and will not function without it.
-
+1. Install the **PlayerHUD Block** first — this condition depends on it and will not function
+   without it.
 2. Download the `.zip` file or clone this repository.
 3. Extract the folder into your Moodle `availability/condition/` directory.
 4. Rename the folder to `playerhud` (if necessary).
@@ -71,191 +40,72 @@ This plugin is part of the **PlayerGames** gamification ecosystem. Together, the
    `your-moodle/availability/condition/playerhud/`
 5. Visit **Site administration > Notifications** to complete installation.
 
----
+See the [Usage](https://jeanlucio.github.io/moodle-availability_playerhud/#usage) section of the
+full documentation for the restriction type reference.
 
-### 📖 Usage
+### 🆘 Support
 
-1. Turn **Edit mode on** in a course.
-2. Edit an activity, resource, or section.
-3. Open the **Restrict access** section.
-4. Click **Add restriction…**
-5. Select **PlayerHUD**.
-6. Choose the restriction type:
-   * **Minimum Level** – Define the required level.
-   * **Own Item** – Select an item, choose an operator, and define the required quantity.
-   * **Character** – Select the RPG class the student must have assigned.
-   * **Gamification Enabled** – Access is granted only to students who have gamification active.
+Found a bug or have a question? Open an issue on the
+[issue tracker](https://github.com/jeanlucio/moodle-availability_playerhud/issues).
 
-Students will only gain access when the defined conditions are met.
-
----
-
-### 🔐 Security & Compliance
-
-* Capability-based validation
-* Server-side condition evaluation
-* Fully integrated with Moodle core access control
-* No external API calls
-* Compatible with Moodle privacy API standards
-
----
-
-### 🧪 Automated Tests
-
-The plugin ships with PHPUnit unit and integration tests, executed on every CI push.
-
-#### PHPUnit — Unit & Integration Tests
-
-| Test file | Cases | What is covered |
-|-----------|------:|----------------|
-| `condition_test.php` | 12 | No-block fallback · level-based access (pass/fail/exact match) · item operators (≥, >, <, =) · class assignment (present, absent, zero id) · class with no RPG progress · gamification enabled/disabled/no player record · unknown subtype fallthrough · corrupted configdata fallback · description strings for all subtypes and operators · `save()` serialisation · `get_debug_string()` |
-| `frontend_test.php` | 5 | `allow_add` with block present and absent · `get_javascript_init_params` with items/classes and with no block · `get_javascript_strings` returning all expected keys |
-| `privacy/provider_test.php` | 1 | `get_reason()` returns the expected lang string key |
-| **Total** | **18** | |
-
-**Line coverage by class (PHPUnit + Xdebug):**
-
-| Class | Line coverage |
-|-------|:-------------:|
-| `condition` | 99% |
-| `frontend` | 100% |
-| `privacy\provider` | 100% |
-| **Overall** | **99%** |
-
-```bash
-vendor/bin/phpunit --testsuite availability_playerhud
-```
-
----
-
-## 📄 License
+### 📄 License
 
 This project is licensed under the **GNU General Public License v3 (GPLv3)**.
 
 **Copyright:** 2026 Jean Lúcio
 
+### 👤 Maintainer
+
+Maintained by [Jean Lúcio](https://github.com/jeanlucio).
+
+[⬆️ Back to top](#english)
+
 ---
 
 ## Português
 
-A **Restrição de Acesso do PlayerHUD** é um plugin de extensão para Moodle que permite ao professor restringir o acesso a atividades, recursos ou seções do curso com base no progresso do aluno no Bloco PlayerHUD.
+A **Restrição de Acesso do PlayerHUD** é uma extensão complementar obrigatória do
+[Bloco PlayerHUD](https://github.com/jeanlucio/moodle-block_playerhud). Ela permite ao professor
+restringir o acesso a atividades, recursos ou seções do curso com base no progresso do estudante
+no PlayerHUD — Nível, Itens possuídos, Classe de personagem ou status de gamificação.
 
-Ele possibilita regras de progressão gamificada, liberando conteúdos apenas quando o estudante atinge determinados **Níveis**, possui **Itens** específicos, pertence a uma **Classe de personagem** ou tem a **gamificação ativa**.
-
----
-
-### ✨ Funcionalidades
-
-* 🎯 Restrição por Nível mínimo
-* 🎒 Restrição baseada em Itens coletados
-* 🔢 Operadores de comparação flexíveis:
-  * Maior que (>)
-  * Menor que (<)
-  * Exatamente (=)
-  * Maior ou igual (>=)
-* 🧙 Restrição por Classe de personagem (classe RPG atribuída no PlayerHUD)
-* 🎮 Restrição a alunos com **gamificação ativa**
-* 🧠 Integração total com o sistema nativo de “Restringir acesso” do Moodle
-* ⚡ Validação em tempo real com base nos dados do PlayerHUD
-
----
-
-### 🕹️ Parte do Ecossistema PlayerGames
-
-Este plugin faz parte do ecossistema de gamificação **PlayerGames**. Juntos, esses plugins transformam o Moodle em uma experiência imersiva:
-
-* **Bloco PlayerHUD (Obrigatório)**
-  👉 https://github.com/jeanlucio/moodle-block_playerhud
-
-* **Filtro PlayerHUD**
-  👉 https://github.com/jeanlucio/moodle-filter_playerhud
-
-* **PlayerGroup:** Permite que os alunos formem seus próprios grupos de forma autônoma diretamente na página da atividade — sem necessidade de intervenção do professor.
-  👉 https://github.com/jeanlucio/moodle-mod_playergroup
-
----
+📚 **[Documentação completa](https://jeanlucio.github.io/moodle-availability_playerhud/pt.html)** —
+funcionalidades, referência dos tipos de restrição, o ecossistema PlayerGames, detalhes de
+segurança, e o detalhamento completo da suíte de testes.
 
 ### 📦 Requisitos
 
-* **Moodle:** 4.5 ou superior
-* **Dependência Obrigatória:** Bloco PlayerHUD
-  https://github.com/jeanlucio/moodle-block_playerhud
-* **PHP:** Compatível com a versão do Moodle
+| Componente | Versão |
+|------------|--------|
+| Moodle     | 4.5+   |
+| Dependência obrigatória | [Bloco PlayerHUD](https://github.com/jeanlucio/moodle-block_playerhud) |
 
----
+### 🛠️ Instalação e Configuração
 
-### 🛠️ Instalação
-
-1. Certifique-se de que o **Bloco PlayerHUD** esteja instalado primeiro.
-   👉 https://github.com/jeanlucio/moodle-block_playerhud
-   Esta restrição depende do bloco e não funcionará sem ele.
-
-2. Baixe o arquivo `.zip` ou clone o repositório.
+1. Instale o **Bloco PlayerHUD** primeiro — esta condição depende dele e não funcionará sem ele.
+2. Baixe o arquivo `.zip` ou clone este repositório.
 3. Extraia a pasta para o diretório `availability/condition/` do seu Moodle.
 4. Renomeie para `playerhud` (se necessário).
    Caminho final:
    `seu-moodle/availability/condition/playerhud/`
 5. Acesse **Administração do site > Notificações** para concluir a instalação.
 
----
+Veja a seção [Como Usar](https://jeanlucio.github.io/moodle-availability_playerhud/pt.html#usage)
+da documentação completa para a referência dos tipos de restrição.
 
-### 📖 Como Usar
+### 🆘 Suporte
 
-1. Ative o **Modo de edição** no curso.
-2. Edite uma atividade, recurso ou seção.
-3. Vá até a seção **Restringir acesso**.
-4. Clique em **Adicionar restrição…**
-5. Selecione **PlayerHUD**.
-6. Escolha o tipo de restrição:
-   * **Nível Mínimo** – Defina o nível necessário.
-   * **Possuir Item** – Selecione o item, escolha o operador e defina a quantidade.
-   * **Personagem** – Selecione a classe RPG que o aluno deve ter atribuída.
-   * **Gamificação Ativa** – O acesso é liberado apenas para alunos com gamificação ativa.
+Encontrou um bug ou tem alguma dúvida? Abra uma issue no
+[rastreador de issues](https://github.com/jeanlucio/moodle-availability_playerhud/issues).
 
-O acesso será liberado automaticamente quando as condições forem atendidas.
-
----
-
-### 🔐 Segurança e Conformidade
-
-* Validação baseada em capabilities
-* Avaliação das condições no servidor
-* Integração total com o controle de acesso do Moodle
-* Não utiliza APIs externas
-* Compatível com os padrões de privacidade do Moodle
-
----
-
-### 🧪 Testes Automatizados
-
-O plugin inclui testes unitários e de integração (PHPUnit), executados a cada push de CI.
-
-#### PHPUnit — Testes Unitários e de Integração
-
-| Arquivo de teste | Casos | O que é coberto |
-|-----------------|------:|----------------|
-| `condition_test.php` | 12 | Fallback sem bloco · acesso por nível (passa/falha/exato) · operadores de item (≥, >, <, =) · atribuição de classe (presente, ausente, id zero) · classe sem progresso RPG · gamificação ativa/desativada/sem registro de jogador · subtype desconhecido cai em false · fallback com configdata corrompido · strings de descrição para todos os subtypes e operadores · serialização de `save()` · `get_debug_string()` |
-| `frontend_test.php` | 5 | `allow_add` com bloco presente e ausente · `get_javascript_init_params` com itens/classes e sem bloco · `get_javascript_strings` retornando todas as chaves esperadas |
-| `privacy/provider_test.php` | 1 | `get_reason()` retorna a chave de lang esperada |
-| **Total** | **18** | |
-
-**Cobertura de linhas por classe (PHPUnit + Xdebug):**
-
-| Classe | Cobertura de linhas |
-|--------|:-------------------:|
-| `condition` | 99% |
-| `frontend` | 100% |
-| `privacy\provider` | 100% |
-| **Total** | **99%** |
-
-```bash
-vendor/bin/phpunit --testsuite availability_playerhud
-```
-
----
-
-## 📄 Licença
+### 📄 Licença
 
 Este projeto é licenciado sob a **GNU General Public License v3 (GPLv3)**.
 
 **Copyright:** 2026 Jean Lúcio
+
+### 👤 Mantenedor
+
+Mantido por [Jean Lúcio](https://github.com/jeanlucio).
+
+[⬆️ Voltar ao topo](#português)
