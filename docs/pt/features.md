@@ -19,3 +19,5 @@
 * 📝 **Texto de Descrição Dinâmico:** a mensagem "Não disponível a menos que..." exibida ao
   estudante é construída a partir do requisito real (nível, nome e quantidade do item, nome da
   classe ou status de gamificação), não de um texto estático.
+* 🧩 **Edição em Lote de Todo o Curso (opcional):** gerencie todas as restrições do PlayerHUD no
+  curso a partir de um único painel via o plugin separado [Report Unlocker](#unlocker).

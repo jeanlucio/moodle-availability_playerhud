@@ -31,6 +31,9 @@ Source code: [github.com/jeanlucio/moodle-availability_playerhud](https://github
 <span id="ecosystem"></span>
 {% include_relative en/ecosystem.md %}
 
+<span id="unlocker"></span>
+{% include_relative en/unlocker.md %}
+
 <span id="requirements"></span>
 {% include_relative en/requirements.md %}
 

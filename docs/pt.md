@@ -32,6 +32,9 @@ Código-fonte: [github.com/jeanlucio/moodle-availability_playerhud](https://gith
 <span id="ecosystem"></span>
 {% include_relative pt/ecosystem.md %}
 
+<span id="unlocker"></span>
+{% include_relative pt/unlocker.md %}
+
 <span id="requirements"></span>
 {% include_relative pt/requirements.md %}
 

@@ -26,3 +26,6 @@ gerada dinamicamente a partir da mesma condição.
   cliente do estado "liberado" que possa ficar desatualizado.
 * Se o bloco PlayerHUD for removido do curso após uma restrição ter sido configurada, a condição
   passa a avaliar com segurança como indisponível, em vez de gerar erro.
+* Editar restrições uma atividade por vez é o fluxo padrão. Para um painel de todo o curso com
+  edição inline e remoção em lote, veja a integração opcional com o
+  [Report Unlocker](#unlocker).

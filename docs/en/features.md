@@ -17,3 +17,5 @@
 * 📝 **Dynamic Description Text:** the "Not available unless..." message shown to students is
   built from the live requirement (level, item name and quantity, class name, or gamification
   status), not a static string.
+* 🧩 **Bulk Course-Wide Editing (optional):** manage every PlayerHUD restriction in the course
+  from a single dashboard via the separate [Report Unlocker](#unlocker) plugin.

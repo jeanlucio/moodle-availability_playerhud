@@ -26,3 +26,6 @@ generated dynamically from the same condition.
   client-side caching of the "unlocked" state to go stale.
 * If the PlayerHUD block is removed from the course after a restriction was configured, the
   condition safely evaluates to unavailable rather than erroring.
+* Editing restrictions one activity at a time is the default flow. For a course-wide dashboard
+  with inline editing and bulk removal, see the optional [Report Unlocker](#unlocker)
+  integration.
