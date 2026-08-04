@@ -11,4 +11,4 @@ sempre escopado à instância do bloco PlayerHUD do próprio curso, então nada 
 restrição é armazenada. Sem o Report Unlocker instalado, as restrições continuam funcionando
 exatamente como descrito em [Como Usar](#usage) — só o painel de todo o curso fica indisponível.
 
-👉 https://github.com/jeanlucio/moodle-report_unlocker
+👉 <https://github.com/jeanlucio/moodle-report_unlocker>

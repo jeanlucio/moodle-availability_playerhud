@@ -11,4 +11,4 @@ course's own PlayerHUD block instance, so nothing changes in how the restriction
 Without Report Unlocker installed, restrictions still work exactly as documented in
 [Usage](#usage) — only the bulk, course-wide dashboard is unavailable.
 
-👉 https://github.com/jeanlucio/moodle-report_unlocker
+👉 <https://github.com/jeanlucio/moodle-report_unlocker>
