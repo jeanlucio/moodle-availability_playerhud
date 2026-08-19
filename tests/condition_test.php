@@ -610,12 +610,12 @@ final class condition_test extends advanced_testcase {
     }
 
     /**
-     * Regression test: an item granted only through block_playerhud's newer quantity-balance
-     * engine (block_playerhud_stack), with no row at all in the legacy inventory table, must
-     * still satisfy the condition. Before this fix, is_available() counted the legacy
-     * inventory table directly, so any item granted purely through the new engine — every
-     * drop with a value, every quest item reward, every trade, from block_playerhud's
-     * item-quantity feature onward — was invisible to this gate.
+     * Regression test: is_available() must reflect whatever block_playerhud's own
+     * external_items::grant()/get_available_quantity() report, rather than counting the
+     * legacy inventory table directly. block_playerhud is free to change how it stores a
+     * granted balance internally (its newer quantity-balance engine, block_playerhud_stack,
+     * bypasses the legacy inventory table entirely for grants made after that feature ships);
+     * this plugin must not assume or depend on which table absorbs the grant.
      */
     public function test_is_available_item_recognises_new_engine_balance(): void {
         global $DB;
@@ -631,12 +631,6 @@ final class condition_test extends advanced_testcase {
         $itemid = $DB->insert_record('block_playerhud_items', $item);
 
         \block_playerhud\local\external_items::grant($this->instanceid, $itemid, $user->id, 3, 'test', true);
-
-        $this->assertSame(
-            0,
-            $DB->count_records('block_playerhud_inventory', ['userid' => $user->id, 'itemid' => $itemid]),
-            'Precondition: the new engine must not write to the legacy inventory table.'
-        );
 
         $info = new \core_availability\mock_info($this->course, $user->id);
         $cond = new condition((object)['subtype' => 'item', 'itemid' => $itemid, 'itemqty' => 3, 'itemop' => '>=']);
