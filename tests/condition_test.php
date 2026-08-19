@@ -610,6 +610,35 @@ final class condition_test extends advanced_testcase {
     }
 
     /**
+     * Regression test: is_available() must reflect whatever block_playerhud's own
+     * external_items::grant()/get_available_quantity() report, rather than counting the
+     * legacy inventory table directly. block_playerhud is free to change how it stores a
+     * granted balance internally (its newer quantity-balance engine, block_playerhud_stack,
+     * bypasses the legacy inventory table entirely for grants made after that feature ships);
+     * this plugin must not assume or depend on which table absorbs the grant.
+     */
+    public function test_is_available_item_recognises_new_engine_balance(): void {
+        global $DB;
+
+        $user = $this->create_player_with_xp(0);
+
+        $item = new \stdClass();
+        $item->blockinstanceid = $this->instanceid;
+        $item->name = 'Diamond';
+        $item->xp = 0;
+        $item->timecreated = time();
+        $item->timemodified = time();
+        $itemid = $DB->insert_record('block_playerhud_items', $item);
+
+        \block_playerhud\local\external_items::grant($this->instanceid, $itemid, $user->id, 3, 'test', true);
+
+        $info = new \core_availability\mock_info($this->course, $user->id);
+        $cond = new condition((object)['subtype' => 'item', 'itemid' => $itemid, 'itemqty' => 3, 'itemop' => '>=']);
+
+        $this->assertTrue($cond->is_available(false, $info, true, $user->id));
+    }
+
+    /**
      * Regression test for the negation ($not) bug: every subtype must return the opposite
      * result when $not is true, mirroring the corresponding $not=false case. The core
      * availability API expects the leaf condition itself to apply the negation

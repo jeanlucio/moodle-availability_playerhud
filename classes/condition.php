@@ -111,19 +111,18 @@ class condition extends \core_availability\condition {
                     $allow = ($stats['level'] >= (int)$this->config->levelval);
                 }
             } else if (isset($this->config->subtype) && $this->config->subtype === 'item') {
-                // Item Logic with Operators.
-                $sql = "SELECT COUNT(inv.id)
-                          FROM {block_playerhud_inventory} inv
-                          JOIN {block_playerhud_items} i ON i.id = inv.itemid
-                         WHERE inv.userid        = :userid
-                           AND inv.itemid        = :itemid
-                           AND i.blockinstanceid = :blockinstanceid";
-
-                $count = $DB->count_records_sql($sql, [
-                    'userid'          => $userid,
-                    'itemid'          => (int)$this->config->itemid,
-                    'blockinstanceid' => $block->id,
-                ]);
+                // Item Logic with Operators. get_available_quantity() sums both the legacy
+                // inventory table and the newer quantity-balance engine, and already excludes
+                // revoked/consumed inventory rows — a raw COUNT() against the inventory table
+                // alone would miss items granted only through the newer engine.
+                $count = 0;
+                if (class_exists('\block_playerhud\local\external_items')) {
+                    $count = \block_playerhud\local\external_items::get_available_quantity(
+                        $block->id,
+                        (int)$this->config->itemid,
+                        $userid
+                    );
+                }
 
                 $qty = (int)$this->config->itemqty;
                 $op = $this->config->itemop ?? '>=';
