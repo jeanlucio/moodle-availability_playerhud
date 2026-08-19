@@ -610,6 +610,41 @@ final class condition_test extends advanced_testcase {
     }
 
     /**
+     * Regression test: an item granted only through block_playerhud's newer quantity-balance
+     * engine (block_playerhud_stack), with no row at all in the legacy inventory table, must
+     * still satisfy the condition. Before this fix, is_available() counted the legacy
+     * inventory table directly, so any item granted purely through the new engine — every
+     * drop with a value, every quest item reward, every trade, from block_playerhud's
+     * item-quantity feature onward — was invisible to this gate.
+     */
+    public function test_is_available_item_recognises_new_engine_balance(): void {
+        global $DB;
+
+        $user = $this->create_player_with_xp(0);
+
+        $item = new \stdClass();
+        $item->blockinstanceid = $this->instanceid;
+        $item->name = 'Diamond';
+        $item->xp = 0;
+        $item->timecreated = time();
+        $item->timemodified = time();
+        $itemid = $DB->insert_record('block_playerhud_items', $item);
+
+        \block_playerhud\local\external_items::grant($this->instanceid, $itemid, $user->id, 3, 'test', true);
+
+        $this->assertSame(
+            0,
+            $DB->count_records('block_playerhud_inventory', ['userid' => $user->id, 'itemid' => $itemid]),
+            'Precondition: the new engine must not write to the legacy inventory table.'
+        );
+
+        $info = new \core_availability\mock_info($this->course, $user->id);
+        $cond = new condition((object)['subtype' => 'item', 'itemid' => $itemid, 'itemqty' => 3, 'itemop' => '>=']);
+
+        $this->assertTrue($cond->is_available(false, $info, true, $user->id));
+    }
+
+    /**
      * Regression test for the negation ($not) bug: every subtype must return the opposite
      * result when $not is true, mirroring the corresponding $not=false case. The core
      * availability API expects the leaf condition itself to apply the negation
