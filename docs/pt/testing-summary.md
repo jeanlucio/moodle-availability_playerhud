@@ -7,16 +7,17 @@ executados a cada push de CI contra a matriz completa (Moodle 4.5 → 5.2, Postg
 
 | Arquivo de teste | Casos |
 |-------------------|------:|
-| `condition_test.php` | 18 |
+| `backup/restore_test.php` | 2 |
+| `condition_test.php` | 24 |
 | `frontend_test.php` | 5 |
 | `privacy/provider_test.php` | 1 |
-| **Total** | **24** |
+| **Total** | **32** |
 
 ```bash
 vendor/bin/phpunit --testsuite availability_playerhud
 ```
 
-**Cobertura de linhas total** (PHPUnit + Xdebug): **99%**.
+**Cobertura de linhas total** (PHPUnit + Xdebug): **94%**.
 
 ### Behat — Testes de Aceitação
 

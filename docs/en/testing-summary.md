@@ -7,16 +7,17 @@ on every CI push against the full Moodle 4.5 → 5.2 matrix (PostgreSQL & MariaD
 
 | Test file | Cases |
 |-----------|------:|
-| `condition_test.php` | 18 |
+| `backup/restore_test.php` | 2 |
+| `condition_test.php` | 24 |
 | `frontend_test.php` | 5 |
 | `privacy/provider_test.php` | 1 |
-| **Total** | **24** |
+| **Total** | **32** |
 
 ```bash
 vendor/bin/phpunit --testsuite availability_playerhud
 ```
 
-**Overall line coverage** (PHPUnit + Xdebug): **99%**.
+**Overall line coverage** (PHPUnit + Xdebug): **94%**.
 
 ### Behat — Acceptance Tests
 

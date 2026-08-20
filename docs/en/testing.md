@@ -7,10 +7,11 @@ on every CI push against the full matrix (Moodle 4.5 → 5.2, PostgreSQL & Maria
 
 | Test file | Cases | What is covered |
 |-----------|------:|----------------|
-| `condition_test.php` | 18 | No-block fallback; level-based access at the exact, above, and below thresholds; item quantity checks across all four operators (≥, >, <, =); RPG class assignment (present, a different class, `classid = 0`, no RPG progress row); gamification enabled/disabled/no-player-record; unknown subtype falls through to `false`; corrupted/empty block `configdata` degrades gracefully; description strings for every subtype and operator; `save()` serialisation, including the int casts; `get_debug_string()`; a forged `levelval`/`itemqty` payload is cast to `int` by both `save()` and `get_description()` instead of being rendered as raw HTML (stored-XSS regression); a tampered block `configdata` containing a serialized object of an arbitrary class is never instantiated, proving `unserialize_object()` blocks it instead of a bare `unserialize()`; `get_description()` and `is_available()` never resolve item/class names or count inventory from a different course's PlayerHUD block instance (instance-isolation regression, three dedicated tests) |
+| `backup/restore_test.php` | 2 | A real course backup/restore round-trip remaps an item-ownership restriction's `itemid`, and an RPG-class restriction's `classid`, to point at the restored course's own PlayerHUD item/class — not the source course's id (a stale id would make the `<` operator's inventory count always resolve to 0, silently unblocking everyone) |
+| `condition_test.php` | 24 | No-block fallback; level-based access at the exact, above, and below thresholds; item quantity checks across all four operators (≥, >, <, =); RPG class assignment (present, a different class, `classid = 0`, no RPG progress row); gamification enabled/disabled/no-player-record; unknown subtype falls through to `false`; corrupted/empty block `configdata` degrades gracefully; description strings for every subtype and operator; `save()` serialisation, including the int casts; `get_debug_string()`; a forged `levelval`/`itemqty` payload is cast to `int` by both `save()` and `get_description()` instead of being rendered as raw HTML (stored-XSS regression); a tampered block `configdata` containing a serialized object of an arbitrary class is never instantiated, proving `unserialize_object()` blocks it instead of a bare `unserialize()`; `get_description()` and `is_available()` never resolve item/class names or count inventory from a different course's PlayerHUD block instance (instance-isolation regression, three dedicated tests); an item quantity check recognises a balance held only in the block's new stack-based quantity engine, not just the legacy inventory table |
 | `frontend_test.php` | 5 | `allow_add()` with the block present and absent; `get_javascript_init_params()` with items/classes populated and with no block; `get_javascript_strings()` returns every expected string key |
 | `privacy/provider_test.php` | 1 | `get_reason()` returns the `privacy:metadata` string key |
-| **Total** | **24** | |
+| **Total** | **32** | |
 
 ```bash
 vendor/bin/phpunit --testsuite availability_playerhud
@@ -22,14 +23,16 @@ vendor/bin/phpunit --testsuite availability_playerhud
 |-------|:-------------:|
 | `frontend` | 100% |
 | `privacy\provider` | 100% |
-| `condition` | 99% |
-| **Overall** | **99%** |
+| `condition` | 91% |
+| **Overall** | **94%** |
 
-The single uncovered line sits in `condition::is_available()`'s `level` branch: the `return
-false;` fallback taken only if the `\block_playerhud\game` class does not exist. PlayerHUD Block
-is a hard declared dependency (`$plugin->dependencies` in `version.php`), so that class is always
-present in any real installation — the branch is defensive code for an already-enforced
-precondition, not untested logic reachable in normal use.
+`condition`'s uncovered lines sit in `is_available()`'s `level` branch (the `return false;`
+fallback taken only if the `\block_playerhud\game` class does not exist — PlayerHUD Block is a
+hard declared dependency, so that class is always present in any real installation) and a
+couple of edge branches in the item-quantity delegation added for the new stack-based engine.
+The backup/restore round-trip test file is not attributed to a single `classes/` unit — it
+exercises the real restore pipeline end to end rather than an isolated class, so it does not
+appear in the per-class table above despite covering `condition`'s restore-time remapping.
 
 ### Behat — Acceptance Tests
 
