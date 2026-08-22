@@ -33,6 +33,7 @@ breakdown.
 | Component | Version |
 |-----------|---------|
 | Moodle    | 4.5+    |
+| PHP       | 8.1+    |
 | Required dependency | [PlayerHUD Block](https://github.com/jeanlucio/moodle-block_playerhud) |
 
 ### 🛠️ Installation & Configuration
@@ -84,6 +85,7 @@ segurança, e o detalhamento completo da suíte de testes.
 | Componente | Versão |
 |------------|--------|
 | Moodle     | 4.5+   |
+| PHP        | 8.1+   |
 | Dependência obrigatória | [Bloco PlayerHUD](https://github.com/jeanlucio/moodle-block_playerhud) |
 
 ### 🛠️ Instalação e Configuração
