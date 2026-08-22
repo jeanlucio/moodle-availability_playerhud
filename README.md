@@ -6,7 +6,7 @@
 [![Latest Release](https://img.shields.io/github/v/release/jeanlucio/moodle-availability_playerhud?style=flat)](https://github.com/jeanlucio/moodle-availability_playerhud/releases)
 [![PlayerGames Ecosystem](https://img.shields.io/badge/PlayerGames-Ecosystem-6f42c1?style=flat&logo=gamepad&logoColor=white)](https://jeanlucio.github.io/playergames/)
 ![Role](https://img.shields.io/badge/Role-Access_Control-d63384?style=flat)
-[![Author](https://img.shields.io/badge/by-Jean_Lucio-6f42c1?style=flat)](https://marketplace.moodle.com/user/984)
+[![Author](https://img.shields.io/badge/by-Jean_Lucio-6f42c1?style=flat)](https://github.com/jeanlucio/)
 
 [![Moodle Plugin CI](https://github.com/jeanlucio/moodle-availability_playerhud/actions/workflows/ci.yml/badge.svg)](https://github.com/jeanlucio/moodle-availability_playerhud/actions/workflows/ci.yml)
 [![MDL Shield](https://img.shields.io/endpoint?url=https%3A%2F%2Fmdlshield.com%2Fapi%2Fbadge%2Favailability_playerhud)](https://mdlshield.com/plugins/availability_playerhud)
