@@ -54,6 +54,7 @@ full documentation for the restriction type reference.
 
 Found a bug or have a question? Open an issue on the
 [issue tracker](https://github.com/jeanlucio/moodle-availability_playerhud/issues).
+For general questions or ideas, use [GitHub Discussions](https://github.com/jeanlucio/moodle-availability_playerhud/discussions).
 
 ### 📄 License
 
@@ -105,6 +106,7 @@ da documentação completa para a referência dos tipos de restrição.
 
 Encontrou um bug ou tem alguma dúvida? Abra uma issue no
 [rastreador de issues](https://github.com/jeanlucio/moodle-availability_playerhud/issues).
+Para perguntas gerais ou ideias, use as [Discussions do GitHub](https://github.com/jeanlucio/moodle-availability_playerhud/discussions).
 
 ### 📄 Licença
 
