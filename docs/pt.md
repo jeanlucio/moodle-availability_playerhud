@@ -30,6 +30,9 @@ necessário, pertence a uma **Classe de personagem**, ou tem a **gamificação a
 
 ---
 
+<span id="screenshots"></span>
+{% include_relative pt/screenshots.md %}
+
 <span id="features"></span>
 {% include_relative pt/features.md %}
 

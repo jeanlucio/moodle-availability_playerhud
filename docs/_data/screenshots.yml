@@ -1,0 +1,9 @@
+# Each entry needs an image at docs/assets/img/screenshots/<file>, plus an
+# English and a Portuguese caption. The screenshots.md pages (en/pt) loop over
+# this list, so adding a new screenshot never touches the gallery markup.
+- file: restriction-editor.png
+  caption_en: "Teachers add a PlayerHUD condition (Level, Item, Class, or gamification active) from the standard Restrict access panel"
+  caption_pt: "O professor adiciona uma condição PlayerHUD (Nível, Item, Classe ou gamificação ativa) direto no painel padrão de Restringir acesso"
+- file: locked-activity.png
+  caption_en: "A student who has not met the condition sees the activity greyed out, with the exact requirement spelled out"
+  caption_pt: "Um estudante que ainda não cumpriu a condição vê a atividade acinzentada, com o requisito exato explicado"
