@@ -25,9 +25,9 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'availability_playerhud';
-$plugin->version   = 2026080300;        // The current plugin version (Date: YYYYMMDDXX).
+$plugin->version   = 2026090300;        // The current plugin version (Date: YYYYMMDDXX).
 $plugin->requires  = 2024100700;        // Requires: Moodle 4.5+.
 $plugin->supported = [405, 502];
 $plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = 'v1.4.2';
-$plugin->dependencies = ['block_playerhud' => 2026051301]; // Forces the matching mod version.
+$plugin->release   = 'v1.5.0';
+$plugin->dependencies = ['block_playerhud' => 2026090301]; // Needs v1.9.0 for the item-quantity engine.
