@@ -1,5 +1,9 @@
 # Changes
 
+## [v1.5.1] — 2026-09-25
+
+- Confirmed: tested and confirmed compatible with Moodle 5.3.
+
 ## [v1.5.0] — 2026-09-03
 
 - Fix: the "owns item" restriction now recognises items granted through block_playerhud's item-quantity engine (drops with a quantity value, quest item rewards, trades). Previously an item held only through the new balance was invisible to the restriction, silently blocking access it should have allowed (or, for a negated restriction, allowing access it should have blocked). Revoked or spent inventory rows are no longer counted as still owned.
