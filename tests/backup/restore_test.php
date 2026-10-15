@@ -81,6 +81,40 @@ final class restore_test extends advanced_testcase {
     }
 
     /**
+     * A restriction re-saved by the restore must still be a valid tree that gates students.
+     *
+     * The restore remaps the item id and re-saves the whole tree; a condition saved without its
+     * "type" would be read back as a malformed subtree, so this checks the gating itself rather
+     * than the stored id.
+     */
+    public function test_restored_item_condition_still_gates_students(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        [$course] = $this->create_fixture_with_item();
+        $newcourseid = $this->backup_and_restore($course);
+
+        $newcm = $this->get_restored_cm($newcourseid, 'Gated Content');
+        $leaf = json_decode($newcm->availability)->c[0];
+        $this->assertSame('playerhud', $leaf->type);
+
+        $newblock = $this->get_playerhud_block($newcourseid);
+        $without = $this->getDataGenerator()->create_and_enrol(get_course($newcourseid), 'student');
+        $with = $this->getDataGenerator()->create_and_enrol(get_course($newcourseid), 'student');
+        $DB->insert_record('block_playerhud_stack', (object) [
+            'userid' => $with->id, 'itemid' => $leaf->itemid, 'qty' => 1, 'timemodified' => time(),
+        ]);
+        $this->assertSame($newblock->id, $DB->get_field('block_playerhud_items', 'blockinstanceid', ['id' => $leaf->itemid]));
+
+        $info = new \core_availability\info_module(get_fast_modinfo($newcourseid)->get_cm($newcm->id));
+        $information = '';
+        // The restriction is "fewer than 1 Poção": open without the item, closed with it.
+        $this->assertTrue($info->is_available($information, false, $without->id));
+        $this->assertFalse($info->is_available($information, false, $with->id));
+    }
+
+    /**
      * A restriction on RPG class assignment must point at the restored course's own class
      * after a course restore, not the source course's class id.
      */

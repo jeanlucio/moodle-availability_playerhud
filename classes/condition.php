@@ -45,10 +45,15 @@ class condition extends \core_availability\condition {
 
     /**
      * Saves data to the database.
+     *
+     * The tree re-saves every condition whenever one of them changes (e.g. after a restore remaps an
+     * id), and a structure without 'type' is then read back as a malformed subtree, so it must be here.
+     *
      * @return \stdClass
      */
     public function save() {
         return (object)[
+            'type' => 'playerhud',
             'subtype' => $this->config->subtype,
             'levelval' => (int)($this->config->levelval ?? 0),
             'itemid' => (int)($this->config->itemid ?? 0),
