@@ -24,6 +24,18 @@
  */
 /* Width helpers for the availability form inputs */
 /* Rule 16: Strict Namespace */
+.availability_playerhud .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
 .availability_playerhud .ph-input-qty {
     width: 60px; /* Rule 11: Zero Inline CSS */
 }

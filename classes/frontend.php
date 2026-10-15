@@ -60,48 +60,31 @@ class frontend extends \core_availability\frontend {
      * @param \stdClass $course Course object.
      * @param \cm_info|null $cm Course-module.
      * @param \section_info|null $section Section info.
-     * @return array Parameters passed to JS initInner.
+     * @return array Parameters passed to JS initInner: items, classes, whether the site runs Bootstrap 5.
      */
     protected function get_javascript_init_params($course, ?\cm_info $cm = null, ?\section_info $section = null) {
-        global $DB;
+        global $CFG, $DB;
 
         $context = \context_course::instance($course->id);
-
-        // Fetch the block to get items.
-        $block = $DB->get_record('block_instances', [
+        $blockid = $DB->get_field('block_instances', 'id', [
             'blockname' => 'playerhud',
             'parentcontextid' => $context->id,
-        ], 'id', IGNORE_MULTIPLE);
+        ], IGNORE_MULTIPLE);
 
         $items = [];
-        if ($block) {
-            $records = $DB->get_records('block_playerhud_items', ['blockinstanceid' => $block->id], 'name ASC', 'id, name');
-            foreach ($records as $r) {
-                $items[] = [
-                    'id' => (int)$r->id,
-                    'name' => format_string($r->name),
-                ];
-            }
-        }
-
         $classes = [];
-        if ($block) {
-            $records = $DB->get_records(
-                'block_playerhud_classes',
-                ['blockinstanceid' => $block->id],
-                'name ASC',
-                'id, name'
-            );
-            foreach ($records as $r) {
-                $classes[] = [
-                    'id' => (int)$r->id,
-                    'name' => format_string($r->name),
-                ];
+        if ($blockid) {
+            // Names go to the form already escaped, the way availability_grade passes its grade items.
+            foreach (\block_playerhud\local\external_items::get_names((int) $blockid) as $id => $name) {
+                $items[] = ['id' => (int) $id, 'name' => format_string($name, true, ['context' => $context])];
+            }
+            foreach (\block_playerhud\game::get_class_names((int) $blockid) as $id => $name) {
+                $classes[] = ['id' => (int) $id, 'name' => format_string($name, true, ['context' => $context])];
             }
         }
 
-        // Returns an array. The first element will be 'items' and the second 'classes' in JS.
-        return [$items, $classes];
+        // Moodle 5.0 moved to Bootstrap 5, where the Bootstrap 4 select classes are deprecated.
+        return [$items, $classes, (int) $CFG->branch >= 500];
     }
 
     /**
@@ -120,6 +103,7 @@ class frontend extends \core_availability\frontend {
             'option_class',
             'label_type',
             'label_min_level',
+            'label_item_op',
             'label_item_select',
             'label_item_qty',
             'label_class_select',

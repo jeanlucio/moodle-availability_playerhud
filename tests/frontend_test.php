@@ -112,6 +112,29 @@ final class frontend_test extends advanced_testcase {
     }
 
     /**
+     * Names reach the form escaped exactly once (the form inserts them as they are), and the form is
+     * told which Bootstrap the site runs.
+     */
+    public function test_get_javascript_init_params_escapes_names_once(): void {
+        global $CFG, $DB;
+
+        $DB->insert_record('block_playerhud_items', (object) [
+            'blockinstanceid' => $this->instanceid, 'name' => 'Potion & Elixir', 'xp' => 0,
+            'timecreated' => time(), 'timemodified' => time(),
+        ]);
+        $DB->insert_record('block_playerhud_classes', (object) [
+            'blockinstanceid' => $this->instanceid, 'name' => 'Knight & Mage', 'description' => '', 'base_hp' => 100,
+            'timecreated' => time(), 'timemodified' => time(),
+        ]);
+
+        [$items, $classes, $bootstrap5] = $this->fe->call_get_javascript_init_params($this->course);
+
+        $this->assertSame('Potion &amp; Elixir', $items[0]['name']);
+        $this->assertSame('Knight &amp; Mage', $classes[0]['name']);
+        $this->assertSame((int) $CFG->branch >= 500, $bootstrap5);
+    }
+
+    /**
      * Test get_javascript_init_params returns items and classes for the course block.
      */
     public function test_get_javascript_init_params_returns_items_and_classes(): void {

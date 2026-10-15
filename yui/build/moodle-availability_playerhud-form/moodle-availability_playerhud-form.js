@@ -52,15 +52,24 @@ M.availability_playerhud.form.items = null;
 M.availability_playerhud.form.classes = null;
 
 /**
+ * Classes for a select, for the Bootstrap version of the site (custom-select only exists in Bootstrap 4).
+ * @property selectClass
+ * @type String
+ */
+M.availability_playerhud.form.selectClass = 'form-select form-select-sm';
+
+/**
  * Initialises this plugin.
  *
  * @method initInner
  * @param {Array} items List of items available in PlayerHUD block.
  * @param {Array} classes List of RPG classes available in PlayerHUD block.
+ * @param {Boolean} bootstrap5 Whether the site runs Bootstrap 5 (Moodle 5.0+).
  */
-M.availability_playerhud.form.initInner = function(items, classes) {
+M.availability_playerhud.form.initInner = function(items, classes, bootstrap5) {
     this.items = items || [];
     this.classes = classes || [];
+    this.selectClass = bootstrap5 ? 'form-select form-select-sm' : 'custom-select custom-select-sm';
 };
 
 /**
@@ -84,12 +93,14 @@ M.availability_playerhud.form.getNode = function(json) {
         more: M.util.get_string('op_more', 'availability_playerhud'),
         less: M.util.get_string('op_less', 'availability_playerhud'),
         equal: M.util.get_string('op_equal', 'availability_playerhud'),
-        class_select: M.util.get_string('label_class_select', 'availability_playerhud')
+        class_select: M.util.get_string('label_class_select', 'availability_playerhud'),
+        item_select: M.util.get_string('label_item_select', 'availability_playerhud'),
+        op: M.util.get_string('label_item_op', 'availability_playerhud')
     };
 
     var html = '<span class="ph-controls d-inline-flex flex-wrap align-items-center gap-2">';
     html += '<label class="mb-0">' + s.type + ' ';
-    html += '<select name="subtype" class="form-select form-select-sm d-inline-block w-auto ms-1">';
+    html += '<select name="subtype" class="' + this.selectClass + ' d-inline-block w-auto ms-1">';
     html += '<option value="level">' + s.level + '</option>';
     html += '<option value="item">' + s.item + '</option>';
     html += '<option value="gamification">' + s.gamification + '</option>';
@@ -98,18 +109,20 @@ M.availability_playerhud.form.getNode = function(json) {
 
     html += '<span class="ph-option-level">';
     html += '<label class="mb-0">' + s.min_level + ' ';
-    html += '<input type="number" name="levelval" class="form-control form-select-sm d-inline-block ph-input-qty ms-1" ';
+    html += '<input type="number" name="levelval" class="form-control form-control-sm d-inline-block ph-input-qty ms-1" ';
     html += 'min="1" value="1">';
     html += '</label></span>';
 
     html += '<span class="ph-option-item">';
     html += '<label class="mb-0">';
-    html += '<select name="itemid" class="form-select form-select-sm d-inline-block ph-select-item">';
+    html += '<span class="visually-hidden">' + s.item_select + '</span>';
+    html += '<select name="itemid" class="' + this.selectClass + ' d-inline-block ph-select-item">';
 
     var i;
     if (this.items && this.items.length > 0) {
         for (i = 0; i < this.items.length; i++) {
-            html += '<option value="' + this.items[i].id + '">' + Y.Escape.html(this.items[i].name) + '</option>';
+            // Already escaped by format_string() in frontend.php: escaping again would show '&amp;'.
+            html += '<option value="' + this.items[i].id + '">' + this.items[i].name + '</option>';
         }
     } else {
         html += '<option value="0">' + s.empty + '</option>';
@@ -117,8 +130,8 @@ M.availability_playerhud.form.getNode = function(json) {
     html += '</select></label>';
 
     html += '<label class="mb-0">';
-    html += '<span class="visually-hidden">' + s.type + '</span>';
-    html += '<select name="itemop" class="form-select form-select-sm d-inline-block w-auto">';
+    html += '<span class="visually-hidden">' + s.op + '</span>';
+    html += '<select name="itemop" class="' + this.selectClass + ' d-inline-block w-auto">';
     html += '<option value=">=">' + s.atleast + '</option>';
     html += '<option value=">">' + s.more + '</option>';
     html += '<option value="<">' + s.less + '</option>';
@@ -127,17 +140,18 @@ M.availability_playerhud.form.getNode = function(json) {
 
     html += '<label class="mb-0">';
     html += '<span class="visually-hidden">' + s.qty + '</span>';
-    html += '<input type="number" name="itemqty" class="form-control form-select-sm d-inline-block ph-input-qty" ';
+    html += '<input type="number" name="itemqty" class="form-control form-control-sm d-inline-block ph-input-qty" ';
     html += 'min="1" value="1">';
     html += '</label></span>';
 
     html += '<span class="ph-option-class">';
     html += '<label class="mb-0">' + s.class_select + ' ';
-    html += '<select name="classid" class="form-select form-select-sm d-inline-block ph-select-class ms-1">';
+    html += '<select name="classid" class="' + this.selectClass + ' d-inline-block ph-select-class ms-1">';
 
     if (this.classes && this.classes.length > 0) {
         for (i = 0; i < this.classes.length; i++) {
-            html += '<option value="' + this.classes[i].id + '">' + Y.Escape.html(this.classes[i].name) + '</option>';
+            // Already escaped by format_string() in frontend.php.
+            html += '<option value="' + this.classes[i].id + '">' + this.classes[i].name + '</option>';
         }
     } else {
         html += '<option value="0">' + s.empty + '</option>';

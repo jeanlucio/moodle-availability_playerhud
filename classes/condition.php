@@ -111,17 +111,35 @@ class condition extends \core_availability\condition {
      * @return \stdClass|false
      */
     private static function get_player(int $blockid, int $userid) {
-        global $DB;
-
         $cache = self::request_cache('players');
         $key = $blockid . '_' . $userid;
         $cached = $cache->get($key);
         if ($cached === false) {
-            // Read directly: game::get_player() would create the record as a side effect.
-            $cached = ['player' => $DB->get_record('block_playerhud_user', ['blockinstanceid' => $blockid, 'userid' => $userid])];
+            $cached = ['player' => \block_playerhud\game::peek_player($blockid, $userid)];
             $cache->set($key, $cached);
         }
         return $cached['player'];
+    }
+
+    /**
+     * The character class a user picked in a block, 0 if none.
+     *
+     * Cached like the player, so a course full of class restrictions reads it once.
+     *
+     * @param int $blockid Block instance ID.
+     * @param int $userid User ID.
+     * @return int Class ID.
+     */
+    private static function get_player_class_id(int $blockid, int $userid): int {
+        $cache = self::request_cache('classes');
+        $key = $blockid . '_' . $userid;
+        $classid = $cache->get($key);
+        if ($classid === false) {
+            $progress = \block_playerhud\game::get_player_class($blockid, $userid);
+            $classid = $progress ? (int) $progress->classid : 0;
+            $cache->set($key, $classid);
+        }
+        return (int) $classid;
     }
 
     /**
@@ -132,14 +150,13 @@ class condition extends \core_availability\condition {
      * @return array
      */
     private static function get_names(int $blockid, string $kind): array {
-        global $DB;
-
         $cache = self::request_cache('names');
         $key = $kind . '_' . $blockid;
         $names = $cache->get($key);
         if ($names === false) {
-            $table = $kind === 'classes' ? 'block_playerhud_classes' : 'block_playerhud_items';
-            $names = $DB->get_records_menu($table, ['blockinstanceid' => $blockid], '', 'id, name');
+            $names = $kind === 'classes'
+                ? \block_playerhud\game::get_class_names($blockid)
+                : \block_playerhud\local\external_items::get_names($blockid);
             $cache->set($key, $names);
         }
         return $names;
@@ -201,12 +218,7 @@ class condition extends \core_availability\condition {
                 if (!$blockconfig instanceof \stdClass) {
                     $blockconfig = new \stdClass();
                 }
-                // Same defaults as game::get_game_stats(), without its whole-game XP totals.
-                $level = \block_playerhud\game::xp_to_level(
-                    $player ? (int) $player->currentxp : 0,
-                    isset($blockconfig->xp_per_level) ? (int) $blockconfig->xp_per_level : 100,
-                    isset($blockconfig->max_levels) ? (int) $blockconfig->max_levels : 20
-                );
+                $level = \block_playerhud\game::level_for_xp($blockconfig, $player ? (int) $player->currentxp : 0);
                 $allow = ($level >= (int) $this->config->levelval);
             } else if ($subtype === 'item') {
                 $count = self::get_quantity($blockid, (int) $this->config->itemid, (int) $userid, (bool) $grabthelot);
@@ -231,8 +243,7 @@ class condition extends \core_availability\condition {
             } else if ($subtype === 'class') {
                 $classid = (int) ($this->config->classid ?? 0);
                 if ($classid > 0 && isset(self::get_names($blockid, 'classes')[$classid])) {
-                    $progress = \block_playerhud\game::get_player_class($blockid, (int) $userid);
-                    $allow = ($progress && (int) $progress->classid === $classid);
+                    $allow = (self::get_player_class_id($blockid, (int) $userid) === $classid);
                 }
             }
         }
@@ -335,10 +346,10 @@ class condition extends \core_availability\condition {
     public function update_after_restore($restoreid, $courseid, \base_logger $logger, $name): bool {
         $changed = false;
         $refs = [
-            'itemid' => ['playerhud_item', 'block_playerhud_items', 'item'],
-            'classid' => ['playerhud_class', 'block_playerhud_classes', 'character class'],
+            'itemid' => ['playerhud_item', 'items', 'item'],
+            'classid' => ['playerhud_class', 'classes', 'character class'],
         ];
-        foreach ($refs as $field => [$mapping, $table, $label]) {
+        foreach ($refs as $field => [$mapping, $kind, $label]) {
             if (empty($this->config->$field)) {
                 continue;
             }
@@ -346,7 +357,7 @@ class condition extends \core_availability\condition {
             if ($rec && $rec->newitemid) {
                 $this->config->$field = (int) $rec->newitemid;
                 $changed = true;
-            } else if (!self::belongs_to_course($table, (int) $this->config->$field, (int) $courseid)) {
+            } else if (!self::belongs_to_course($kind, (int) $this->config->$field, (int) $courseid)) {
                 $this->config->$field = 0;
                 $logger->process(
                     'Restored item (' . $name . ') has an availability condition on a PlayerHUD ' . $label .
@@ -366,17 +377,23 @@ class condition extends \core_availability\condition {
      * course (a duplicated activity or section) and stays valid. Read uncached: during a restore the
      * target block may have been created in this same request.
      *
-     * @param string $table block_playerhud_items or block_playerhud_classes.
+     * @param string $kind 'items' or 'classes'.
      * @param int $id Item or class ID.
      * @param int $courseid Target course ID.
      * @return bool
      */
-    private static function belongs_to_course(string $table, int $id, int $courseid): bool {
+    private static function belongs_to_course(string $kind, int $id, int $courseid): bool {
         global $DB;
-        $sql = "SELECT 1
-                  FROM {" . $table . "} t
-                  JOIN {block_instances} bi ON bi.id = t.blockinstanceid AND bi.blockname = 'playerhud'
-                 WHERE t.id = :id AND bi.parentcontextid = :ctxid";
-        return $DB->record_exists_sql($sql, ['id' => $id, 'ctxid' => \context_course::instance($courseid)->id]);
+        $blockid = (int) $DB->get_field('block_instances', 'id', [
+            'blockname' => 'playerhud',
+            'parentcontextid' => \context_course::instance($courseid)->id,
+        ], IGNORE_MULTIPLE);
+        if (!$blockid) {
+            return false;
+        }
+        if ($kind === 'classes') {
+            return isset(\block_playerhud\game::get_class_names($blockid)[$id]);
+        }
+        return \block_playerhud\local\external_items::belongs_to_instance($id, $blockid);
     }
 }

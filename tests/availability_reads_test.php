@@ -43,11 +43,11 @@ final class availability_reads_test extends advanced_testcase {
      * Creates a course with a PlayerHUD block, one item the student holds and $count restricted pages.
      *
      * @param int $count Number of restricted pages.
-     * @param bool $playerhud PlayerHUD item restrictions, or past-date restrictions as the baseline.
-     * @param int $userid Student holding the item.
+     * @param string $subtype PlayerHUD subtype of the restrictions, or 'date' for the past-date baseline.
+     * @param int $userid Student holding the item and the class.
      * @return \stdClass Course.
      */
-    private function course_with(int $count, bool $playerhud, int $userid): \stdClass {
+    private function course_with(int $count, string $subtype, int $userid): \stdClass {
         global $DB;
         $course = $this->getDataGenerator()->create_course();
         $this->getDataGenerator()->enrol_user($userid, $course->id, 'student');
@@ -64,9 +64,22 @@ final class availability_reads_test extends advanced_testcase {
         ]);
         $DB->insert_record('block_playerhud_stack', (object) ['userid' => $userid, 'itemid' => $itemid, 'qty' => 1,
             'timemodified' => time()]);
-        $leaf = $playerhud
-            ? ['type' => 'playerhud', 'subtype' => 'item', 'itemid' => $itemid, 'itemqty' => 1, 'itemop' => '>=']
-            : ['type' => 'date', 'd' => '>=', 't' => time() - DAYSECS];
+        $classid = (int) $DB->insert_record('block_playerhud_classes', (object) [
+            'blockinstanceid' => $blockid, 'name' => 'Knight', 'description' => '', 'base_hp' => 100,
+            'timecreated' => time(), 'timemodified' => time(),
+        ]);
+        $DB->insert_record('block_playerhud_rpg_progress', (object) [
+            'blockinstanceid' => $blockid, 'userid' => $userid, 'classid' => $classid, 'karma' => 0,
+            'current_nodes' => '{}', 'completed_chapters' => '[]', 'timecreated' => time(), 'timemodified' => time(),
+        ]);
+        $leaves = [
+            'item' => ['type' => 'playerhud', 'subtype' => 'item', 'itemid' => $itemid, 'itemqty' => 1, 'itemop' => '>='],
+            'class' => ['type' => 'playerhud', 'subtype' => 'class', 'classid' => $classid],
+            'level' => ['type' => 'playerhud', 'subtype' => 'level', 'levelval' => 1],
+            'gamification' => ['type' => 'playerhud', 'subtype' => 'gamification'],
+            'date' => ['type' => 'date', 'd' => '>=', 't' => time() - DAYSECS],
+        ];
+        $leaf = $leaves[$subtype];
         for ($i = 0; $i < $count; $i++) {
             $this->getDataGenerator()->create_module('page', [
                 'course' => $course->id,
@@ -95,19 +108,31 @@ final class availability_reads_test extends advanced_testcase {
     }
 
     /**
-     * The PlayerHUD restrictions add the same few reads whether the course has 3 or 15 of them.
+     * Subtypes of PlayerHUD restriction.
+     *
+     * @return array
      */
-    public function test_reads_do_not_grow_with_the_number_of_restrictions(): void {
+    public static function subtype_provider(): array {
+        return ['item' => ['item'], 'class' => ['class'], 'level' => ['level'], 'gamification' => ['gamification']];
+    }
+
+    /**
+     * The PlayerHUD restrictions add the same few reads whether the course has 3 or 15 of them.
+     *
+     * @dataProvider subtype_provider
+     * @param string $subtype PlayerHUD subtype.
+     */
+    public function test_reads_do_not_grow_with_the_number_of_restrictions(string $subtype): void {
         $this->resetAfterTest();
         $user = $this->getDataGenerator()->create_user();
 
         // The first check of a user also loads their capabilities; keep that out of the comparison.
-        $this->reads($this->course_with(1, false, $user->id), $user->id);
+        $this->reads($this->course_with(1, 'date', $user->id), $user->id);
 
         $extra = [];
         foreach ([3, 15] as $count) {
-            $date = $this->reads($this->course_with($count, false, $user->id), $user->id);
-            $playerhud = $this->reads($this->course_with($count, true, $user->id), $user->id);
+            $date = $this->reads($this->course_with($count, 'date', $user->id), $user->id);
+            $playerhud = $this->reads($this->course_with($count, $subtype, $user->id), $user->id);
             $extra[$count] = $playerhud - $date;
         }
 
