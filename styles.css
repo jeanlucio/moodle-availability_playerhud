@@ -23,15 +23,6 @@
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 /* Width helpers for the availability form inputs */
-.availability_playerhud .ph-input-short {
-    width: 80px;
-    display: inline-block;
-}
-
-.availability_playerhud .ph-select-medium {
-    max-width: 200px;
-    display: inline-block;
-}
 /* Rule 16: Strict Namespace */
 .availability_playerhud .ph-input-qty {
     width: 60px; /* Rule 11: Zero Inline CSS */

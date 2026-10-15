@@ -27,6 +27,8 @@ defined('MOODLE_INTERNAL') || die();
 $string['description'] = 'Permitir acesso baseado em Nível, Itens ou Personagem no PlayerHUD.';
 $string['empty'] = 'Nenhum item encontrado';
 $string['error_block_missing'] = 'Bloco PlayerHUD não encontrado neste curso.';
+$string['error_selectclass'] = 'Você precisa escolher um personagem.';
+$string['error_selectitem'] = 'Você precisa escolher um item.';
 $string['label_class_select'] = 'Personagem necessário:';
 $string['label_item_qty'] = 'Quantidade mínima:';
 $string['label_item_select'] = 'Item necessário:';

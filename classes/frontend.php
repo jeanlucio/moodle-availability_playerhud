@@ -112,6 +112,8 @@ class frontend extends \core_availability\frontend {
     protected function get_javascript_strings() {
         return [
             'empty',
+            'error_selectclass',
+            'error_selectitem',
             'option_gamification',
             'option_level',
             'option_item',

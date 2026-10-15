@@ -212,3 +212,20 @@ M.availability_playerhud.form.fillValue = function(value, node) {
         value.itemop = node.one('select[name=itemop]').get('value');
     }
 };
+
+/**
+ * Blocks saving an item or character restriction with nothing selected, which no student could meet.
+ *
+ * @method fillErrors
+ * @param {Array} errors Error identifiers to add to.
+ * @param {Y.Node} node The form node.
+ */
+M.availability_playerhud.form.fillErrors = function(errors, node) {
+    var value = {};
+    this.fillValue(value, node);
+    if (value.subtype === 'item' && !value.itemid) {
+        errors.push('availability_playerhud:error_selectitem');
+    } else if (value.subtype === 'class' && !value.classid) {
+        errors.push('availability_playerhud:error_selectclass');
+    }
+};

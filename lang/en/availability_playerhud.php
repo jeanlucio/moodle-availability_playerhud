@@ -27,6 +27,8 @@ defined('MOODLE_INTERNAL') || die();
 $string['description'] = 'Allow access based on Level, Items or Character in PlayerHUD.';
 $string['empty'] = 'No items found';
 $string['error_block_missing'] = 'PlayerHUD block not found in this course.';
+$string['error_selectclass'] = 'You must select a character.';
+$string['error_selectitem'] = 'You must select an item.';
 $string['label_class_select'] = 'Required Character:';
 $string['label_item_qty'] = 'Minimum Quantity:';
 $string['label_item_select'] = 'Required Item:';

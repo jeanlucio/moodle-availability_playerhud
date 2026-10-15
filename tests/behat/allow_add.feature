@@ -34,3 +34,14 @@ Feature: PlayerHUD restriction type is only offered when the block exists in the
     And I expand all fieldsets
     When I click on "Add restriction..." "button"
     Then I should not see "PlayerHUD"
+
+  Scenario: An item restriction cannot be saved when the block has no item to choose
+    Given a PlayerHUD block exists in course "C1" with 100 XP per level
+    And I log in as "teacher1"
+    And I am on the "Test Page" "page activity editing" page
+    And I expand all fieldsets
+    And I click on "Add restriction..." "button"
+    And I click on "PlayerHUD" "button" in the "Add restriction..." "dialogue"
+    And I set the field "Type:" to "Own Item"
+    When I press "Save and return to course"
+    Then I should see "You must select an item."

@@ -64,6 +64,19 @@ class condition extends \core_availability\condition {
     }
 
     /**
+     * Request-scoped cache for one kind of PlayerHUD data.
+     *
+     * Request scope only: the data is read again on the next page, so nothing has to be invalidated
+     * when a student collects, trades or toggles gamification.
+     *
+     * @param string $area Cache area.
+     * @return \cache
+     */
+    private static function request_cache(string $area) {
+        return \cache::make_from_params(\cache_store::MODE_REQUEST, 'availability_playerhud', $area);
+    }
+
+    /**
      * Fetches the PlayerHUD block instance attached to a course, if any.
      *
      * @param int $courseid Course ID.
@@ -72,14 +85,95 @@ class condition extends \core_availability\condition {
     private function get_block_instance(int $courseid) {
         global $DB;
 
+        $cache = self::request_cache('blocks');
+        $cached = $cache->get($courseid);
+        if ($cached !== false) {
+            return $cached['block'];
+        }
         $context = \context_course::instance($courseid);
-
         $sql = "SELECT bi.id, bi.configdata
                   FROM {block_instances} bi
                  WHERE bi.blockname = 'playerhud'
                    AND bi.parentcontextid = :ctxid";
+        $block = $DB->get_record_sql($sql, ['ctxid' => $context->id], IGNORE_MULTIPLE);
+        $cache->set($courseid, ['block' => $block]);
+        return $block;
+    }
 
-        return $DB->get_record_sql($sql, ['ctxid' => $context->id], IGNORE_MULTIPLE);
+    /**
+     * The player record of a user in a block, false if the user never opened it.
+     *
+     * A missing record is cached too: the core computes each activity's availability once per
+     * request, so a record the block creates later in the same request would not change it.
+     *
+     * @param int $blockid Block instance ID.
+     * @param int $userid User ID.
+     * @return \stdClass|false
+     */
+    private static function get_player(int $blockid, int $userid) {
+        global $DB;
+
+        $cache = self::request_cache('players');
+        $key = $blockid . '_' . $userid;
+        $cached = $cache->get($key);
+        if ($cached === false) {
+            // Read directly: game::get_player() would create the record as a side effect.
+            $cached = ['player' => $DB->get_record('block_playerhud_user', ['blockinstanceid' => $blockid, 'userid' => $userid])];
+            $cache->set($key, $cached);
+        }
+        return $cached['player'];
+    }
+
+    /**
+     * Names of every item or character class of a block, keyed by id.
+     *
+     * @param int $blockid Block instance ID.
+     * @param string $kind 'items' or 'classes'.
+     * @return array
+     */
+    private static function get_names(int $blockid, string $kind): array {
+        global $DB;
+
+        $cache = self::request_cache('names');
+        $key = $kind . '_' . $blockid;
+        $names = $cache->get($key);
+        if ($names === false) {
+            $table = $kind === 'classes' ? 'block_playerhud_classes' : 'block_playerhud_items';
+            $names = $DB->get_records_menu($table, ['blockinstanceid' => $blockid], '', 'id, name');
+            $cache->set($key, $names);
+        }
+        return $names;
+    }
+
+    /**
+     * How many units of an item a user holds.
+     *
+     * When the core checks a whole course for one user ($grabthelot), every item of the block is
+     * loaded at once and reused by the other conditions of that check; a single check reads only
+     * its own item.
+     *
+     * @param int $blockid Block instance ID.
+     * @param int $itemid Item ID.
+     * @param int $userid User ID.
+     * @param bool $grabthelot Whether the core is checking many conditions for this user.
+     * @return int
+     */
+    private static function get_quantity(int $blockid, int $itemid, int $userid, bool $grabthelot): int {
+        $cache = self::request_cache('quantities');
+        $key = $blockid . '_' . $userid;
+        $quantities = $cache->get($key);
+        if ($quantities === false && $grabthelot) {
+            $quantities = \block_playerhud\local\external_items::get_available_quantities_bulk(
+                $blockid,
+                array_keys(self::get_names($blockid, 'items')),
+                $userid
+            );
+            $cache->set($key, $quantities);
+        }
+        if ($quantities !== false) {
+            return (int) ($quantities[$itemid] ?? 0);
+        }
+        return \block_playerhud\local\external_items::get_available_quantity($blockid, $itemid, $userid);
     }
 
     /**
@@ -92,47 +186,33 @@ class condition extends \core_availability\condition {
      * @return bool True if available.
      */
     public function is_available($not, \core_availability\info $info, $grabthelot, $userid) {
-        global $DB;
-
         $block = $this->get_block_instance($info->get_course()->id);
         $allow = false;
+        $subtype = $this->config->subtype ?? '';
 
         if ($block) {
-            $player = $DB->get_record('block_playerhud_user', [
-                'blockinstanceid' => $block->id,
-                'userid' => $userid,
-            ]);
+            $blockid = (int) $block->id;
+            $player = self::get_player($blockid, (int) $userid);
 
-            $currentxp = $player ? $player->currentxp : 0;
-
-            // Level Logic (Greater than or Equal).
-            if (isset($this->config->subtype) && $this->config->subtype === 'level') {
+            if ($subtype === 'level') {
                 // Unserialize_object() restricts allowed_classes, unlike a bare unserialize(),
                 // preventing instantiation of arbitrary objects from a tampered configdata.
-                $blockconfig = unserialize_object(base64_decode($block->configdata));
-
-                if (class_exists('\block_playerhud\game')) {
-                    $stats = \block_playerhud\game::get_game_stats($blockconfig, $block->id, $currentxp);
-                    $allow = ($stats['level'] >= (int)$this->config->levelval);
+                $blockconfig = unserialize_object(base64_decode((string) $block->configdata));
+                if (!$blockconfig instanceof \stdClass) {
+                    $blockconfig = new \stdClass();
                 }
-            } else if (isset($this->config->subtype) && $this->config->subtype === 'item') {
-                // Item Logic with Operators. get_available_quantity() sums both the legacy
-                // inventory table and the newer quantity-balance engine, and already excludes
-                // revoked/consumed inventory rows — a raw COUNT() against the inventory table
-                // alone would miss items granted only through the newer engine.
-                $count = 0;
-                if (class_exists('\block_playerhud\local\external_items')) {
-                    $count = \block_playerhud\local\external_items::get_available_quantity(
-                        $block->id,
-                        (int)$this->config->itemid,
-                        $userid
-                    );
-                }
+                // Same defaults as game::get_game_stats(), without its whole-game XP totals.
+                $level = \block_playerhud\game::xp_to_level(
+                    $player ? (int) $player->currentxp : 0,
+                    isset($blockconfig->xp_per_level) ? (int) $blockconfig->xp_per_level : 100,
+                    isset($blockconfig->max_levels) ? (int) $blockconfig->max_levels : 20
+                );
+                $allow = ($level >= (int) $this->config->levelval);
+            } else if ($subtype === 'item') {
+                $count = self::get_quantity($blockid, (int) $this->config->itemid, (int) $userid, (bool) $grabthelot);
+                $qty = (int) $this->config->itemqty;
 
-                $qty = (int)$this->config->itemqty;
-                $op = $this->config->itemop ?? '>=';
-
-                switch ($op) {
+                switch ($this->config->itemop ?? '>=') {
                     case '>':
                         $allow = ($count > $qty);
                         break;
@@ -146,26 +226,13 @@ class condition extends \core_availability\condition {
                         $allow = ($count >= $qty);
                         break;
                 }
-            } else if (isset($this->config->subtype) && $this->config->subtype === 'gamification') {
-                // Gamification Logic: user must have gamification enabled.
+            } else if ($subtype === 'gamification') {
                 $allow = ($player && $player->enable_gamification == 1);
-            } else if (isset($this->config->subtype) && $this->config->subtype === 'class') {
-                // Class Logic: user must have the RPG class assigned.
-                $classid = (int)($this->config->classid ?? 0);
-
-                if ($classid > 0) {
-                    $sql = "SELECT rp.id
-                              FROM {block_playerhud_rpg_progress} rp
-                              JOIN {block_playerhud_classes} c ON c.id = rp.classid
-                             WHERE rp.userid        = :userid
-                               AND rp.classid       = :classid
-                               AND c.blockinstanceid = :blockinstanceid";
-
-                    $allow = $DB->record_exists_sql($sql, [
-                        'userid'          => $userid,
-                        'classid'         => $classid,
-                        'blockinstanceid' => $block->id,
-                    ]);
+            } else if ($subtype === 'class') {
+                $classid = (int) ($this->config->classid ?? 0);
+                if ($classid > 0 && isset(self::get_names($blockid, 'classes')[$classid])) {
+                    $progress = \block_playerhud\game::get_player_class($blockid, (int) $userid);
+                    $allow = ($progress && (int) $progress->classid === $classid);
                 }
             }
         }
@@ -179,14 +246,15 @@ class condition extends \core_availability\condition {
     /**
      * Description displayed to student.
      *
+     * Item and class names go through description_format_string(), so the core formats them once
+     * the page is ready rather than while the course cache is being built.
+     *
      * @param bool $full Full description.
      * @param bool $not NOT logic.
      * @param \core_availability\info $info Context info.
      * @return string Description string.
      */
     public function get_description($full, $not, \core_availability\info $info) {
-        global $DB;
-
         if (!isset($this->config->subtype)) {
             return '';
         }
@@ -196,23 +264,20 @@ class condition extends \core_availability\condition {
             return get_string($string, 'availability_playerhud', (int)$this->config->levelval);
         }
 
-        $context = $info->get_context();
+        if ($this->config->subtype === 'gamification') {
+            $string = $not ? 'requires_not_gamification_active' : 'requires_gamification_active';
+            return get_string($string, 'availability_playerhud');
+        }
+
         $block = $this->get_block_instance($info->get_course()->id);
+        $missing = get_string('missing', 'availability_playerhud');
 
         if ($this->config->subtype === 'item') {
-            $itemname = get_string('missing', 'availability_playerhud');
-            if (!empty($this->config->itemid) && $block) {
-                $itemname = $DB->get_field('block_playerhud_items', 'name', [
-                    'id' => (int)$this->config->itemid,
-                    'blockinstanceid' => $block->id,
-                ]) ?: $itemname;
-            }
+            $names = $block ? self::get_names((int) $block->id, 'items') : [];
+            $itemid = (int) ($this->config->itemid ?? 0);
+            $itemname = isset($names[$itemid]) ? self::description_format_string($names[$itemid]) : $missing;
 
-            $op = $this->config->itemop ?? '>=';
-            $optext = '';
-
-            // Map operators to language strings.
-            switch ($op) {
+            switch ($this->config->itemop ?? '>=') {
                 case '>':
                     $optext = get_string('op_text_more', 'availability_playerhud');
                     break;
@@ -222,7 +287,6 @@ class condition extends \core_availability\condition {
                 case '=':
                     $optext = get_string('op_text_equal', 'availability_playerhud');
                     break;
-                case '>=':
                 default:
                     $optext = get_string('op_text_atleast', 'availability_playerhud');
                     break;
@@ -230,30 +294,20 @@ class condition extends \core_availability\condition {
 
             $a = new \stdClass();
             $a->qty = (int)$this->config->itemqty;
-            $a->item = format_string($itemname, true, ['context' => $context]);
+            $a->item = $itemname;
             $a->op = $optext;
 
             $string = $not ? 'requires_not_item' : 'requires_item';
             return get_string($string, 'availability_playerhud', $a);
         }
 
-        if ($this->config->subtype === 'gamification') {
-            $string = $not ? 'requires_not_gamification_active' : 'requires_gamification_active';
-            return get_string($string, 'availability_playerhud');
-        }
-
         if ($this->config->subtype === 'class') {
-            $classname = get_string('missing', 'availability_playerhud');
-            if (!empty($this->config->classid) && $block) {
-                $classname = $DB->get_field(
-                    'block_playerhud_classes',
-                    'name',
-                    ['id' => (int)$this->config->classid, 'blockinstanceid' => $block->id]
-                ) ?: $classname;
-            }
+            $names = $block ? self::get_names((int) $block->id, 'classes') : [];
+            $classid = (int) ($this->config->classid ?? 0);
+            $classname = isset($names[$classid]) ? self::description_format_string($names[$classid]) : $missing;
 
             $string = $not ? 'requires_not_class' : 'requires_class';
-            return get_string($string, 'availability_playerhud', format_string($classname, true, ['context' => $context]));
+            return get_string($string, 'availability_playerhud', $classname);
         }
 
         return '';
@@ -280,37 +334,49 @@ class condition extends \core_availability\condition {
      */
     public function update_after_restore($restoreid, $courseid, \base_logger $logger, $name): bool {
         $changed = false;
-
-        if (!empty($this->config->itemid)) {
-            $rec = \restore_dbops::get_backup_ids_record($restoreid, 'playerhud_item', $this->config->itemid);
+        $refs = [
+            'itemid' => ['playerhud_item', 'block_playerhud_items', 'item'],
+            'classid' => ['playerhud_class', 'block_playerhud_classes', 'character class'],
+        ];
+        foreach ($refs as $field => [$mapping, $table, $label]) {
+            if (empty($this->config->$field)) {
+                continue;
+            }
+            $rec = \restore_dbops::get_backup_ids_record($restoreid, $mapping, $this->config->$field);
             if ($rec && $rec->newitemid) {
-                $this->config->itemid = (int)$rec->newitemid;
-            } else {
-                $this->config->itemid = 0;
+                $this->config->$field = (int) $rec->newitemid;
+                $changed = true;
+            } else if (!self::belongs_to_course($table, (int) $this->config->$field, (int) $courseid)) {
+                $this->config->$field = 0;
                 $logger->process(
-                    'Restored item (' . $name . ') has an availability condition on a PlayerHUD item ' .
-                        'that was not restored',
+                    'Restored item (' . $name . ') has an availability condition on a PlayerHUD ' . $label .
+                        ' that was not restored',
                     \backup::LOG_WARNING
                 );
+                $changed = true;
             }
-            $changed = true;
         }
-
-        if (!empty($this->config->classid)) {
-            $rec = \restore_dbops::get_backup_ids_record($restoreid, 'playerhud_class', $this->config->classid);
-            if ($rec && $rec->newitemid) {
-                $this->config->classid = (int)$rec->newitemid;
-            } else {
-                $this->config->classid = 0;
-                $logger->process(
-                    'Restored item (' . $name . ') has an availability condition on a PlayerHUD ' .
-                        'character class that was not restored',
-                    \backup::LOG_WARNING
-                );
-            }
-            $changed = true;
-        }
-
         return $changed;
+    }
+
+    /**
+     * Whether a PlayerHUD item or class belongs to the block of a course.
+     *
+     * Without a restore mapping, an id that already belongs to the target course comes from the same
+     * course (a duplicated activity or section) and stays valid. Read uncached: during a restore the
+     * target block may have been created in this same request.
+     *
+     * @param string $table block_playerhud_items or block_playerhud_classes.
+     * @param int $id Item or class ID.
+     * @param int $courseid Target course ID.
+     * @return bool
+     */
+    private static function belongs_to_course(string $table, int $id, int $courseid): bool {
+        global $DB;
+        $sql = "SELECT 1
+                  FROM {" . $table . "} t
+                  JOIN {block_instances} bi ON bi.id = t.blockinstanceid AND bi.blockname = 'playerhud'
+                 WHERE t.id = :id AND bi.parentcontextid = :ctxid";
+        return $DB->record_exists_sql($sql, ['id' => $id, 'ctxid' => \context_course::instance($courseid)->id]);
     }
 }

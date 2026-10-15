@@ -115,6 +115,40 @@ final class restore_test extends advanced_testcase {
     }
 
     /**
+     * Duplicating a restricted activity in its own course keeps the item and class it points at.
+     *
+     * The duplicate is an activity backup without the block, so no item or class mapping exists;
+     * the ids already belong to the course and must be kept, as availability_grade does.
+     */
+    public function test_duplicate_in_same_course_keeps_item_and_class(): void {
+        global $DB;
+        $this->resetAfterTest();
+        $this->setAdminUser();
+
+        [$course, $cm, $itemid] = $this->create_fixture_with_item();
+        $blockid = (int) $this->get_playerhud_block($course->id)->id;
+        $classid = (int) $DB->insert_record('block_playerhud_classes', (object) [
+            'blockinstanceid' => $blockid, 'name' => 'Guerreiro', 'description' => '', 'base_hp' => 100,
+            'timecreated' => time(), 'timemodified' => time(),
+        ]);
+        $tree = json_decode($cm->availability);
+        $tree->c[] = (object) ['type' => 'playerhud', 'subtype' => 'class', 'classid' => $classid];
+        $tree->showc[] = true;
+        $DB->set_field('course_modules', 'availability', json_encode($tree), ['id' => $cm->id]);
+        rebuild_course_cache($course->id, true);
+
+        if (method_exists(\core_courseformat\local\cmactions::class, 'duplicate')) {
+            $copy = \core_courseformat\formatactions::cm($course->id)->duplicate($cm->id);
+        } else {
+            $copy = duplicate_module($course, get_fast_modinfo($course)->get_cm($cm->id));
+        }
+
+        $leaves = json_decode($DB->get_field('course_modules', 'availability', ['id' => $copy->id]))->c;
+        $this->assertSame($itemid, (int) $leaves[0]->itemid);
+        $this->assertSame($classid, (int) $leaves[1]->classid);
+    }
+
+    /**
      * A restriction on RPG class assignment must point at the restored course's own class
      * after a course restore, not the source course's class id.
      */
