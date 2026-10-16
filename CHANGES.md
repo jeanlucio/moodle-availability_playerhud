@@ -1,5 +1,23 @@
 # Changes
 
+## [v1.6.0] — 2026-10-15
+
+- Fix: saving a restriction again no longer drops its condition type. A course restore or a
+  duplicated activity saves the whole restriction tree when it remaps an item, and the condition
+  was then read back as malformed, so the restored activity was locked or opened for everyone.
+  The upgrade restores the type on restrictions already saved without it.
+- Fix: duplicating a restricted activity inside its own course keeps the item or character the
+  restriction points at, instead of losing it.
+- Fix: item and character names with an ampersand or quotes no longer show as `&amp;` in the
+  restriction form.
+- Fix: the restriction form is styled on Moodle 4.5 and its hidden labels no longer show on
+  screen. The item selector has its own label, the comparison selector is labelled
+  "Comparison", and the quantity field is no longer called a minimum.
+- Update: checking every activity of a course costs a fixed, small number of database queries
+  instead of about five per restriction.
+- Update: the condition reads PlayerHUD only through block_playerhud's read-only helpers instead
+  of querying its tables. Requires block_playerhud v1.11.0 or later.
+
 ## [v1.5.1] — 2026-09-25
 
 - Confirmed: tested and confirmed compatible with Moodle 5.3.
